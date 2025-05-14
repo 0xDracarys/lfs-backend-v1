@@ -27,7 +27,7 @@ import {
 const LFSBuilder: React.FC = () => {
   const { toast } = useToast();
   const [steps, setSteps] = useState<BuildStepType[]>(LFS_BUILD_STEPS);
-  const [currentPhase, setCurrentPhase] = useState<BuildPhaseEnum>(BuildPhaseEnum.INITIAL_SETUP);
+  const [currentPhase, setCurrentPhase] = useState<BuildPhase>(BuildPhase.INITIAL_SETUP);
   const [currentContext, setCurrentContext] = useState<UserContext>(UserContext.ROOT);
   const [buildProgress, setBuildProgress] = useState<number>(0);
   const [logs, setLogs] = useState<string[]>([
@@ -43,23 +43,23 @@ const LFSBuilder: React.FC = () => {
 
   // Group steps by phase
   const stepsByPhase = React.useMemo(() => {
-    return steps.reduce<Record<BuildPhaseEnum, BuildStepType[]>>((acc, step) => {
+    return steps.reduce<Record<BuildPhase, BuildStepType[]>>((acc, step) => {
       if (!acc[step.phase]) {
         acc[step.phase] = [];
       }
       acc[step.phase].push(step);
       return acc;
-    }, {} as Record<BuildPhaseEnum, BuildStepType[]>);
+    }, {} as Record<BuildPhase, BuildStepType[]>);
   }, [steps]);
 
   // Calculate phase completion status
   const phaseStatus = React.useMemo(() => {
-    return Object.entries(stepsByPhase).reduce<Record<BuildPhaseEnum, {completed: boolean}>>((acc, [phase, phaseSteps]) => {
-      acc[phase as BuildPhaseEnum] = {
+    return Object.entries(stepsByPhase).reduce<Record<BuildPhase, {completed: boolean}>>((acc, [phase, phaseSteps]) => {
+      acc[phase as BuildPhase] = {
         completed: phaseSteps.every(step => step.status === BuildStatus.COMPLETED || step.status === BuildStatus.SKIPPED)
       };
       return acc;
-    }, {} as Record<BuildPhaseEnum, {completed: boolean}>);
+    }, {} as Record<BuildPhase, {completed: boolean}>);
   }, [stepsByPhase]);
 
   // Update build progress
@@ -375,15 +375,15 @@ const LFSBuilder: React.FC = () => {
             </h2>
             
             <div className="space-y-4">
-              {Object.entries(BuildPhaseEnum).map(([_, phase]) => (
+              {Object.entries(BuildPhase).map(([_, phase]) => (
                 stepsByPhase[phase] && (
                   <BuildPhaseComponent
                     key={phase}
-                    phase={phase}
+                    phase={phase as BuildPhase}
                     steps={stepsByPhase[phase]}
                     onStartStep={runBuildStep}
                     isCurrentPhase={currentPhase === phase}
-                    isCompleted={phaseStatus[phase]?.completed}
+                    isCompleted={phaseStatus[phase as BuildPhase]?.completed}
                   />
                 )
               ))}

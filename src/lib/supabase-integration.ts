@@ -117,9 +117,9 @@ export async function getBuildConfigurationById(id: string): Promise<LFSBuildCon
  */
 export async function startBuild(configId: string): Promise<LFSBuildRecord | null> {
   try {
-    const buildRecord = {
+    const buildRecord: Omit<LFSBuildRecord, 'id' | 'started_at'> = {
       config_id: configId,
-      status: 'in_progress' as const,
+      status: 'in_progress',
       current_phase: BuildPhase.INITIAL_SETUP,
       current_step_id: null,
       progress_percentage: 0,
@@ -135,7 +135,8 @@ export async function startBuild(configId: string): Promise<LFSBuildRecord | nul
       return null;
     }
 
-    return data?.[0] || null;
+    // Cast to ensure type safety
+    return data?.[0] ? data[0] as LFSBuildRecord : null;
   } catch (error) {
     console.error('Exception starting build:', error);
     return null;
@@ -192,7 +193,7 @@ export async function recordBuildStep(
   outputLog?: string
 ): Promise<boolean> {
   try {
-    const stepData = {
+    const stepData: Partial<LFSBuildStep> = {
       build_id: buildId,
       step_id: stepId,
       status,
@@ -206,7 +207,7 @@ export async function recordBuildStep(
 
     const { error } = await supabase
       .from('lfs_build_steps')
-      .upsert([stepData], { onConflict: 'build_id,step_id' })
+      .upsert([stepData as LFSBuildStep], { onConflict: 'build_id,step_id' })
       .select();
 
     if (error) {
@@ -237,7 +238,8 @@ export async function getBuildSteps(buildId: string): Promise<LFSBuildStep[]> {
       return [];
     }
 
-    return data || [];
+    // Cast to ensure type safety
+    return (data || []) as LFSBuildStep[];
   } catch (error) {
     console.error(`Exception fetching build steps for build ${buildId}:`, error);
     return [];
@@ -260,7 +262,8 @@ export async function getBuildsForConfiguration(configId: string): Promise<LFSBu
       return [];
     }
 
-    return data || [];
+    // Cast to ensure type safety
+    return (data || []) as LFSBuildRecord[];
   } catch (error) {
     console.error(`Exception fetching builds for config ${configId}:`, error);
     return [];
