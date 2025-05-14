@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// LFS Builder custom colors
+				lfs: {
+					'root': '#FF6B6B',       // Root user context
+					'lfs-user': '#4ECDC4',   // LFS user context
+					'chroot': '#F9DC5C',     // Chroot context
+					'success': '#2ECC71',    // Success indicators
+					'error': '#E74C3C',      // Error indicators
+					'warning': '#F39C12',    // Warning indicators
+					'info': '#3498DB',       // Info indicators
+					'progress': '#9B59B6',   // Progress indicators
 				}
 			},
 			borderRadius: {
@@ -84,11 +96,16 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-soft': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.6' },
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-soft': 'pulse-soft 2s ease-in-out infinite',
 			}
 		}
 	},
