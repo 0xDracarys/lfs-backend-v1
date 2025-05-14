@@ -1,13 +1,12 @@
-
 import React, { useState, useEffect } from "react";
 import { 
-  BuildPhase as BuildPhaseEnum, 
   BuildStep as BuildStepType,
   BuildStatus, 
   InputRequest, 
   LFS_BUILD_STEPS, 
   UserContext 
 } from "../lib/lfs-automation";
+import { BuildPhase } from "../lib/lfs-automation"; // Fixed import
 import BuildPhaseComponent from "./BuildPhase";
 import LogViewer from "./LogViewer";
 import StatusBar from "./StatusBar";

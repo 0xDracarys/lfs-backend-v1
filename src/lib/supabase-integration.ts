@@ -10,14 +10,15 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { BuildPhase, BuildStatus } from "./lfs-automation";
+import { Database } from "@/integrations/supabase/types";
 
 // Types for Supabase data models
 export interface LFSBuildConfig {
   id?: string;
   name: string;
-  targetDisk: string;
-  sourcesPath: string;
-  scriptsPath: string;
+  target_disk: string;
+  sources_path: string;
+  scripts_path: string;
   created_at?: string;
   user_id?: string;
 }
@@ -52,15 +53,14 @@ export async function saveBuildConfiguration(config: Omit<LFSBuildConfig, 'id' |
     const { data, error } = await supabase
       .from('lfs_build_configs')
       .insert([config])
-      .select()
-      .single();
+      .select();
 
     if (error) {
       console.error('Error saving build configuration:', error);
       return null;
     }
 
-    return data;
+    return data?.[0] || null;
   } catch (error) {
     console.error('Exception saving build configuration:', error);
     return null;
@@ -117,9 +117,9 @@ export async function getBuildConfigurationById(id: string): Promise<LFSBuildCon
  */
 export async function startBuild(configId: string): Promise<LFSBuildRecord | null> {
   try {
-    const buildRecord: Omit<LFSBuildRecord, 'id' | 'user_id'> = {
+    const buildRecord = {
       config_id: configId,
-      status: 'in_progress',
+      status: 'in_progress' as const,
       current_phase: BuildPhase.INITIAL_SETUP,
       current_step_id: null,
       progress_percentage: 0,
@@ -128,15 +128,14 @@ export async function startBuild(configId: string): Promise<LFSBuildRecord | nul
     const { data, error } = await supabase
       .from('lfs_builds')
       .insert([buildRecord])
-      .select()
-      .single();
+      .select();
 
     if (error) {
       console.error('Error starting build:', error);
       return null;
     }
 
-    return data;
+    return data?.[0] || null;
   } catch (error) {
     console.error('Exception starting build:', error);
     return null;
@@ -193,7 +192,7 @@ export async function recordBuildStep(
   outputLog?: string
 ): Promise<boolean> {
   try {
-    const stepData: Omit<LFSBuildStep, 'id'> = {
+    const stepData = {
       build_id: buildId,
       step_id: stepId,
       status,
@@ -203,8 +202,6 @@ export async function recordBuildStep(
     // If the step is completed or failed, set the completion time
     if (status === BuildStatus.COMPLETED || status === BuildStatus.FAILED) {
       stepData.completed_at = new Date().toISOString();
-    } else if (status === BuildStatus.IN_PROGRESS) {
-      stepData.started_at = new Date().toISOString();
     }
 
     const { error } = await supabase

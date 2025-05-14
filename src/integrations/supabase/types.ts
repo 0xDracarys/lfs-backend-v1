@@ -9,7 +9,118 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      lfs_build_configs: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          scripts_path: string
+          sources_path: string
+          target_disk: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          scripts_path: string
+          sources_path: string
+          target_disk: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          scripts_path?: string
+          sources_path?: string
+          target_disk?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      lfs_build_steps: {
+        Row: {
+          build_id: string | null
+          completed_at: string | null
+          id: string
+          output_log: string | null
+          started_at: string | null
+          status: string
+          step_id: string
+        }
+        Insert: {
+          build_id?: string | null
+          completed_at?: string | null
+          id?: string
+          output_log?: string | null
+          started_at?: string | null
+          status: string
+          step_id: string
+        }
+        Update: {
+          build_id?: string | null
+          completed_at?: string | null
+          id?: string
+          output_log?: string | null
+          started_at?: string | null
+          status?: string
+          step_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lfs_build_steps_build_id_fkey"
+            columns: ["build_id"]
+            isOneToOne: false
+            referencedRelation: "lfs_builds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lfs_builds: {
+        Row: {
+          completed_at: string | null
+          config_id: string | null
+          current_phase: string
+          current_step_id: string | null
+          id: string
+          progress_percentage: number
+          started_at: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          config_id?: string | null
+          current_phase: string
+          current_step_id?: string | null
+          id?: string
+          progress_percentage?: number
+          started_at?: string | null
+          status: string
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          config_id?: string | null
+          current_phase?: string
+          current_step_id?: string | null
+          id?: string
+          progress_percentage?: number
+          started_at?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lfs_builds_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "lfs_build_configs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
