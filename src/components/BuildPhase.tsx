@@ -1,19 +1,19 @@
 
 import React from "react";
-import { BuildPhase as BuildPhaseType, BuildStep as BuildStepType } from "../lib/lfs-automation";
+import { BuildPhase as BuildPhaseEnum, BuildStep as BuildStepType } from "../lib/lfs-automation";
 import BuildStep from "./BuildStep";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface BuildPhaseProps {
-  phase: BuildPhaseType;
+  phase: BuildPhaseEnum;
   steps: BuildStepType[];
   onStartStep: (step: BuildStepType) => void;
   isCurrentPhase?: boolean;
   isCompleted?: boolean;
 }
 
-const BuildPhase: React.FC<BuildPhaseProps> = ({ 
+const BuildPhaseComponent: React.FC<BuildPhaseProps> = ({ 
   phase, 
   steps, 
   onStartStep,
@@ -71,4 +71,4 @@ const BuildPhase: React.FC<BuildPhaseProps> = ({
   );
 };
 
-export default BuildPhase;
+export default BuildPhaseComponent;
