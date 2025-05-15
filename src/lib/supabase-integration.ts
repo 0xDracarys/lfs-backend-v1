@@ -10,7 +10,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { BuildPhase, BuildStatus } from "./lfs-automation";
-import { Database } from "@/integrations/supabase/types";
+import { toast } from "@/components/ui/use-toast";
 
 // Types for Supabase data models
 export interface LFSBuildConfig {
@@ -46,9 +46,39 @@ export interface LFSBuildStep {
 }
 
 /**
+ * Check if user is authenticated and show toast if not
+ */
+const ensureAuthenticated = (): boolean => {
+  const user = supabase.auth.getUser();
+  if (!user) {
+    toast({
+      title: "Authentication required",
+      description: "You must be signed in to perform this action",
+      variant: "destructive"
+    });
+    return false;
+  }
+  return true;
+};
+
+/**
+ * Handle API errors consistently
+ */
+const handleError = (error: any, operation: string): void => {
+  console.error(`Error ${operation}:`, error);
+  toast({
+    title: "Operation failed",
+    description: `Failed to ${operation}. Please try again.`,
+    variant: "destructive"
+  });
+};
+
+/**
  * Save a new LFS build configuration
  */
 export async function saveBuildConfiguration(config: Omit<LFSBuildConfig, 'id' | 'created_at' | 'user_id'>): Promise<LFSBuildConfig | null> {
+  if (!ensureAuthenticated()) return null;
+  
   try {
     const { data, error } = await supabase
       .from('lfs_build_configs')
@@ -56,13 +86,13 @@ export async function saveBuildConfiguration(config: Omit<LFSBuildConfig, 'id' |
       .select();
 
     if (error) {
-      console.error('Error saving build configuration:', error);
+      handleError(error, "saving build configuration");
       return null;
     }
 
     return data?.[0] || null;
   } catch (error) {
-    console.error('Exception saving build configuration:', error);
+    handleError(error, "saving build configuration");
     return null;
   }
 }
@@ -78,13 +108,13 @@ export async function getBuildConfigurations(): Promise<LFSBuildConfig[]> {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching build configurations:', error);
+      handleError(error, "fetching build configurations");
       return [];
     }
 
     return data || [];
   } catch (error) {
-    console.error('Exception fetching build configurations:', error);
+    handleError(error, "fetching build configurations");
     return [];
   }
 }
@@ -101,13 +131,13 @@ export async function getBuildConfigurationById(id: string): Promise<LFSBuildCon
       .single();
 
     if (error) {
-      console.error(`Error fetching build configuration with ID ${id}:`, error);
+      handleError(error, `fetching build configuration with ID ${id}`);
       return null;
     }
 
     return data;
   } catch (error) {
-    console.error(`Exception fetching build configuration with ID ${id}:`, error);
+    handleError(error, `fetching build configuration with ID ${id}`);
     return null;
   }
 }
@@ -116,6 +146,8 @@ export async function getBuildConfigurationById(id: string): Promise<LFSBuildCon
  * Start tracking a new build
  */
 export async function startBuild(configId: string): Promise<LFSBuildRecord | null> {
+  if (!ensureAuthenticated()) return null;
+  
   try {
     const buildRecord: Omit<LFSBuildRecord, 'id' | 'started_at'> = {
       config_id: configId,
@@ -131,14 +163,14 @@ export async function startBuild(configId: string): Promise<LFSBuildRecord | nul
       .select();
 
     if (error) {
-      console.error('Error starting build:', error);
+      handleError(error, "starting build");
       return null;
     }
 
     // Cast to ensure type safety
     return data?.[0] ? data[0] as LFSBuildRecord : null;
   } catch (error) {
-    console.error('Exception starting build:', error);
+    handleError(error, "starting build");
     return null;
   }
 }
@@ -153,6 +185,8 @@ export async function updateBuildStatus(
   currentStepId: string | null,
   progressPercentage: number
 ): Promise<boolean> {
+  if (!ensureAuthenticated()) return false;
+  
   try {
     const updateData: Partial<LFSBuildRecord> = {
       status,
@@ -172,13 +206,13 @@ export async function updateBuildStatus(
       .eq('id', buildId);
 
     if (error) {
-      console.error(`Error updating build status for build ${buildId}:`, error);
+      handleError(error, `updating build status for build ${buildId}`);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error(`Exception updating build status for build ${buildId}:`, error);
+    handleError(error, `updating build status for build ${buildId}`);
     return false;
   }
 }
@@ -192,6 +226,8 @@ export async function recordBuildStep(
   status: BuildStatus,
   outputLog?: string
 ): Promise<boolean> {
+  if (!ensureAuthenticated()) return false;
+  
   try {
     const stepData: Partial<LFSBuildStep> = {
       build_id: buildId,
@@ -211,13 +247,13 @@ export async function recordBuildStep(
       .select();
 
     if (error) {
-      console.error(`Error recording build step for build ${buildId}, step ${stepId}:`, error);
+      handleError(error, `recording build step for build ${buildId}, step ${stepId}`);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error(`Exception recording build step for build ${buildId}, step ${stepId}:`, error);
+    handleError(error, `recording build step for build ${buildId}, step ${stepId}`);
     return false;
   }
 }
@@ -234,14 +270,14 @@ export async function getBuildSteps(buildId: string): Promise<LFSBuildStep[]> {
       .order('started_at', { ascending: true });
 
     if (error) {
-      console.error(`Error fetching build steps for build ${buildId}:`, error);
+      handleError(error, `fetching build steps for build ${buildId}`);
       return [];
     }
 
     // Cast to ensure type safety
     return (data || []) as LFSBuildStep[];
   } catch (error) {
-    console.error(`Exception fetching build steps for build ${buildId}:`, error);
+    handleError(error, `fetching build steps for build ${buildId}`);
     return [];
   }
 }
@@ -258,14 +294,14 @@ export async function getBuildsForConfiguration(configId: string): Promise<LFSBu
       .order('started_at', { ascending: false });
 
     if (error) {
-      console.error(`Error fetching builds for config ${configId}:`, error);
+      handleError(error, `fetching builds for config ${configId}`);
       return [];
     }
 
     // Cast to ensure type safety
     return (data || []) as LFSBuildRecord[];
   } catch (error) {
-    console.error(`Exception fetching builds for config ${configId}:`, error);
+    handleError(error, `fetching builds for config ${configId}`);
     return [];
   }
 }
@@ -283,13 +319,13 @@ export async function getStepLogs(buildId: string, stepId: string): Promise<stri
       .single();
 
     if (error) {
-      console.error(`Error fetching logs for build ${buildId}, step ${stepId}:`, error);
+      handleError(error, `fetching logs for build ${buildId}, step ${stepId}`);
       return null;
     }
 
     return data?.output_log || null;
   } catch (error) {
-    console.error(`Exception fetching logs for build ${buildId}, step ${stepId}:`, error);
+    handleError(error, `fetching logs for build ${buildId}, step ${stepId}`);
     return null;
   }
 }
