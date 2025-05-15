@@ -1,45 +1,139 @@
 
-import { BuildPhase } from "../lfs-automation";
+import { BuildPhase, BuildStatus } from "../lfs-automation";
 
 /**
- * Test configuration for LFS builds
+ * Configuration for an LFS test case
  */
-export interface LFSTestConfiguration {
+export interface TestConfiguration {
+  /** Unique identifier for this test configuration */
+  id: string;
+  
+  /** Human-readable name for the test case */
   name: string;
+  
+  /** Description of what this test verifies */
   description: string;
-  target_disk: string;
-  sources_path: string;
-  scripts_path: string;
-  user_inputs: {
-    [stepId: string]: string;  // Maps step IDs to their expected input values
+  
+  /** Target disk device for LFS installation */
+  targetDisk: string;
+  
+  /** Mount point where LFS will be built */
+  lfsMountPoint: string;
+  
+  /** Path to LFS sources */
+  sourcesPath: string;
+  
+  /** Phases to include in the test */
+  includePhases: BuildPhase[];
+  
+  /** Whether the test can run without user intervention */
+  automated: boolean;
+  
+  /** Maximum time in minutes before the test is aborted */
+  timeoutMinutes: number;
+  
+  /** Whether to generate an ISO image after the build */
+  generateIso?: boolean;
+  
+  /** Pre-defined inputs for input requests during build */
+  inputs: Record<string, string>;
+  
+  /** Custom commands to execute at different stages */
+  customCommands?: {
+    /** Commands to run after initial setup phase */
+    afterInitialSetup?: string[];
+    
+    /** Commands to run before entering chroot */
+    beforeChrootEnter?: string[];
+    
+    /** Commands to run after exiting chroot */
+    afterChrootExit?: string[];
   };
-  expected_outcomes: {
-    should_complete: boolean;
-    expected_phases_to_complete: BuildPhase[];
-    expected_duration_minutes?: number;
+  
+  /** Kernel configuration options */
+  kernelConfig?: {
+    /** Kernel modules to explicitly enable */
+    enableModules?: string[];
+    
+    /** Kernel modules to explicitly disable */
+    disableModules?: string[];
   };
-  iso_generation: {
-    generate: boolean;
-    minimal_iso: boolean;
-    expected_size_mb?: number;
+  
+  /** ISO generation options */
+  isoOptions?: {
+    /** ISO volume label */
+    label: string;
+    
+    /** Type of bootloader to use */
+    bootloaderType: string;
+    
+    /** Packages to include in the ISO */
+    includePackages: string[];
+    
+    /** Name of the generated ISO file */
+    isoName: string;
   };
 }
 
 /**
- * Test run results
+ * Result of a test run
  */
 export interface TestRunResult {
+  /** ID of the test configuration used */
   configId: string;
+  
+  /** ID of the associated build */
   buildId: string;
+  
+  /** Time when the test started */
   startTime: Date;
-  endTime?: Date;
-  status: 'in_progress' | 'completed' | 'failed';
-  completedPhases: BuildPhase[];
-  failedStep?: {
-    stepId: string;
-    error: string;
-  };
-  isoGenerated: boolean;
-  isoDownloadUrl?: string;
+  
+  /** Time when the test finished */
+  endTime: Date;
+  
+  /** Success or failure status */
+  status: "success" | "failed" | "timeout" | "aborted";
+  
+  /** Phases that were successfully completed */
+  completedPhases: string[];
+  
+  /** Logs from the test run */
   logs: string[];
+  
+  /** Whether an ISO was successfully generated */
+  isoGenerated: boolean;
+}
+
+/**
+ * Configuration for the test runner
+ */
+export interface TestConfig {
+  /** Level of detail in logs */
+  logLevel: "error" | "warn" | "info" | "debug";
+  
+  /** Whether to save test results */
+  saveResults?: boolean;
+  
+  /** Directory to save results in */
+  resultDir?: string;
+}
+
+/**
+ * ISO generation options
+ */
+export interface IsoGenerationOptions {
+  /** Source directory containing files to include in the ISO */
+  sourceDir: string;
+  
+  /** Output path for the ISO file */
+  outputPath: string;
+  
+  /** Volume label */
+  label: string;
+  
+  /** Type of bootloader to use */
+  bootloader: "grub" | "isolinux" | "none";
+  
+  /** Whether to make the ISO bootable */
+  bootable: boolean;
 }
