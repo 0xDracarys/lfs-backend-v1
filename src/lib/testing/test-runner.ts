@@ -1,6 +1,6 @@
 
 import { BuildStatus } from "../lfs-automation";
-import { TestConfig, TestRunResult } from "./types";
+import { LFSTestConfiguration, TestConfig, TestRunResult } from "./types";
 
 /**
  * Main test runner for executing LFS Builder test cases
@@ -105,6 +105,64 @@ export class TestRunner {
         "Processing...",
         `Step ${stepId} completed successfully`
       ]
+    };
+  }
+}
+
+/**
+ * Run a test build with the given configuration
+ */
+export async function runTestBuild(config: LFSTestConfiguration): Promise<TestRunResult> {
+  console.log(`Running test build with configuration: ${config.name}`);
+  
+  // Simulate a build process
+  const startTime = new Date();
+  const buildId = `build-${Date.now()}`;
+  
+  // For demo purposes, we'll simulate a delay and then return a result
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+  
+  // Simulate a successful build or failure based on expected outcome
+  if (config.expected_outcomes.should_complete) {
+    return {
+      configId: config.name,
+      buildId,
+      startTime,
+      endTime: new Date(),
+      status: "success",
+      completedPhases: ["INITIAL_SETUP", "LFS_USER_BUILD", "CHROOT_SETUP"],
+      logs: [
+        "Test build started",
+        `Using target disk: ${config.target_disk}`,
+        `Sources path: ${config.sources_path}`,
+        "Initial setup completed",
+        "LFS user created and configured",
+        "Chroot environment prepared",
+        "Test build completed successfully"
+      ],
+      isoGenerated: config.iso_generation.generate,
+      isoDownloadUrl: config.iso_generation.generate ? `/api/iso/${buildId}/${config.iso_generation.iso_name || 'lfs.iso'}` : undefined
+    };
+  } else {
+    return {
+      configId: config.name,
+      buildId,
+      startTime,
+      endTime: new Date(),
+      status: "failed",
+      completedPhases: ["INITIAL_SETUP"],
+      logs: [
+        "Test build started",
+        `Using target disk: ${config.target_disk}`,
+        `Sources path: ${config.sources_path}`,
+        "Initial setup started",
+        `ERROR: ${config.expected_outcomes.expected_error || 'Unknown error occurred'}`
+      ],
+      isoGenerated: false,
+      failedStep: {
+        stepId: "disk-preparation",
+        error: config.expected_outcomes.expected_error || "Unknown error occurred"
+      }
     };
   }
 }

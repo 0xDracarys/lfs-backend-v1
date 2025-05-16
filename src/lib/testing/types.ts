@@ -102,6 +102,18 @@ export interface TestRunResult {
   
   /** Whether an ISO was successfully generated */
   isoGenerated: boolean;
+  
+  /** URL to download the generated ISO */
+  isoDownloadUrl?: string;
+  
+  /** Information about a failed step */
+  failedStep?: {
+    /** ID of the step that failed */
+    stepId: string;
+    
+    /** Error message */
+    error: string;
+  };
 }
 
 /**
@@ -136,4 +148,42 @@ export interface IsoGenerationOptions {
   
   /** Whether to make the ISO bootable */
   bootable: boolean;
+}
+
+/**
+ * Configuration for LFS test
+ */
+export interface LFSTestConfiguration {
+  /** Name of the test */
+  name: string;
+  
+  /** Description of what this test does */
+  description: string;
+  
+  /** Target disk for installation */
+  target_disk: string;
+  
+  /** Path to LFS sources */
+  sources_path: string;
+  
+  /** Path to scripts */
+  scripts_path: string;
+  
+  /** ISO generation configuration */
+  iso_generation: {
+    /** Whether to generate an ISO */
+    generate: boolean;
+    
+    /** Name of the ISO file */
+    iso_name?: string;
+  };
+  
+  /** Expected outcomes of the test */
+  expected_outcomes: {
+    /** Whether the build should complete successfully */
+    should_complete: boolean;
+    
+    /** Expected error message if the build should fail */
+    expected_error?: string;
+  };
 }

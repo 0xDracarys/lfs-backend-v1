@@ -1,6 +1,6 @@
 
 import { BuildPhase, UserContext } from "../lfs-automation";
-import { TestConfiguration } from "./types";
+import { LFSTestConfiguration, TestConfiguration } from "./types";
 
 /**
  * Default test configurations for the LFS Builder testing framework
@@ -95,3 +95,83 @@ export const DEFAULT_TEST_CONFIGURATIONS: Record<string, TestConfiguration> = {
     }
   }
 };
+
+/**
+ * Predefined test configurations for LFS Builder
+ */
+export const TEST_CONFIGURATIONS: LFSTestConfiguration[] = [
+  {
+    name: "Default Build Test",
+    description: "Tests the default LFS build configuration with minimal setup",
+    target_disk: "/dev/sdb",
+    sources_path: "/sources",
+    scripts_path: "/scripts",
+    iso_generation: {
+      generate: false
+    },
+    expected_outcomes: {
+      should_complete: true
+    }
+  },
+  {
+    name: "ISO Generation Test",
+    description: "Tests the LFS build with ISO generation at the end",
+    target_disk: "/dev/sdc",
+    sources_path: "/sources/lfs-11.2",
+    scripts_path: "/scripts/iso-build",
+    iso_generation: {
+      generate: true,
+      iso_name: "lfs-test.iso"
+    },
+    expected_outcomes: {
+      should_complete: true
+    }
+  },
+  {
+    name: "Error Handling Test",
+    description: "Test that deliberately triggers an error to verify error handling",
+    target_disk: "/invalid/disk/path",
+    sources_path: "/nonexistent/sources",
+    scripts_path: "/scripts",
+    iso_generation: {
+      generate: false
+    },
+    expected_outcomes: {
+      should_complete: false,
+      expected_error: "Invalid disk path"
+    }
+  }
+];
+
+/**
+ * Get a test configuration by name
+ */
+export function getTestConfigurationByName(name: string): LFSTestConfiguration | undefined {
+  return TEST_CONFIGURATIONS.find(config => config.name === name);
+}
+
+/**
+ * Create a custom test configuration
+ */
+export function createCustomTestConfiguration(
+  name: string,
+  targetDisk: string,
+  sourcesPath: string,
+  scriptsPath: string,
+  generateIso: boolean
+): LFSTestConfiguration {
+  return {
+    name,
+    description: `Custom test configuration: ${name}`,
+    target_disk: targetDisk,
+    sources_path: sourcesPath,
+    scripts_path: scriptsPath,
+    iso_generation: {
+      generate: generateIso,
+      iso_name: generateIso ? `${name.toLowerCase().replace(/\s+/g, '-')}.iso` : undefined
+    },
+    expected_outcomes: {
+      should_complete: true
+    }
+  };
+}

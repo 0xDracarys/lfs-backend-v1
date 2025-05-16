@@ -85,11 +85,11 @@ const TestRunner: React.FC = () => {
       setTestResult(result);
       
       toast({
-        title: result.status === "completed" ? "Test Completed" : "Test Failed",
-        description: result.status === "completed" 
+        title: result.status === "success" ? "Test Completed" : "Test Failed",
+        description: result.status === "success" 
           ? `Test "${config.name}" completed successfully` 
           : `Test "${config.name}" failed${result.failedStep ? ` at step ${result.failedStep.stepId}` : ''}`,
-        variant: result.status === "completed" ? "default" : "destructive"
+        variant: result.status === "success" ? "default" : "destructive"
       });
     } catch (error) {
       toast({
@@ -237,7 +237,7 @@ const TestRunner: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-2">
                 <div><span className="font-medium">Status:</span> <span className={`${
-                  testResult.status === 'completed' ? 'text-green-600' : 'text-red-600'
+                  testResult.status === 'success' ? 'text-green-600' : 'text-red-600'
                 } font-bold`}>{testResult.status}</span></div>
                 <div><span className="font-medium">Build ID:</span> {testResult.buildId}</div>
                 <div><span className="font-medium">Duration:</span> {
