@@ -1,6 +1,7 @@
 
 import { BuildStatus } from "../lfs-automation";
 import { LFSTestConfiguration, TestConfig, TestRunResult } from "./types";
+import { IsoGenerator } from "./iso-generator";
 
 /**
  * Main test runner for executing LFS Builder test cases
@@ -107,6 +108,30 @@ export class TestRunner {
       ]
     };
   }
+
+  /**
+   * Generate an ISO image from a completed test build
+   */
+  async generateTestIso(
+    buildId: string,
+    config: LFSTestConfiguration
+  ): Promise<string> {
+    console.log(`Generating test ISO for build ${buildId}`);
+    
+    const isoGenerator = new IsoGenerator();
+    const isoName = config.iso_generation.iso_name || "lfs-test.iso";
+    const outputPath = `/tmp/iso/${buildId}/${isoName}`;
+    
+    await isoGenerator.generateIso({
+      sourceDir: `/tmp/builds/${buildId}/lfs`,
+      outputPath,
+      label: config.name,
+      bootloader: "grub",
+      bootable: true
+    });
+    
+    return outputPath;
+  }
 }
 
 /**
@@ -124,7 +149,7 @@ export async function runTestBuild(config: LFSTestConfiguration): Promise<TestRu
   
   // Simulate a successful build or failure based on expected outcome
   if (config.expected_outcomes.should_complete) {
-    return {
+    const result: TestRunResult = {
       configId: config.name,
       buildId,
       startTime,
@@ -140,9 +165,28 @@ export async function runTestBuild(config: LFSTestConfiguration): Promise<TestRu
         "Chroot environment prepared",
         "Test build completed successfully"
       ],
-      isoGenerated: config.iso_generation.generate,
-      isoDownloadUrl: config.iso_generation.generate ? `/api/iso/${buildId}/${config.iso_generation.iso_name || 'lfs.iso'}` : undefined
+      isoGenerated: false
     };
+    
+    // If ISO generation was requested, we'll simulate that it was done
+    if (config.iso_generation.generate) {
+      // In a real implementation, we would generate the ISO here
+      // For now, we'll just pretend it was done
+      const isoName = config.iso_generation.iso_name || 'lfs.iso';
+      result.isoGenerated = true;
+      result.isoDownloadUrl = `/api/iso/${buildId}/${isoName}`;
+      
+      // Add ISO generation logs
+      result.logs.push(
+        "Starting ISO generation",
+        "Setting up ISO directory structure",
+        "Copying LFS files to ISO image",
+        "Installing bootloader",
+        `ISO created successfully: ${isoName}`
+      );
+    }
+    
+    return result;
   } else {
     return {
       configId: config.name,

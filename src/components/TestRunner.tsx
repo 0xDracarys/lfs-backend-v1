@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,9 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TEST_CONFIGURATIONS, getTestConfigurationByName, createCustomTestConfiguration } from "@/lib/testing/test-configurations";
 import { LFSTestConfiguration, TestRunResult } from "@/lib/testing/types";
 import { runTestBuild } from "@/lib/testing/test-runner";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { ArrowDown, Play, Download, ListFilter } from "lucide-react";
 import LogViewer from "./LogViewer";
+import { IsoGenerator } from "@/lib/testing/iso-generator";
 
 const TestRunner: React.FC = () => {
   // State for test configuration selection and customization
@@ -34,6 +34,9 @@ const TestRunner: React.FC = () => {
   // State for test execution
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [testResult, setTestResult] = useState<TestRunResult | null>(null);
+  const [isGeneratingIso, setIsGeneratingIso] = useState<boolean>(false);
+  
+  const { toast } = useToast();
   
   // Handle test configuration selection
   const handleConfigSelect = (name: string) => {
@@ -91,6 +94,11 @@ const TestRunner: React.FC = () => {
           : `Test "${config.name}" failed${result.failedStep ? ` at step ${result.failedStep.stepId}` : ''}`,
         variant: result.status === "success" ? "default" : "destructive"
       });
+      
+      // If ISO generation was requested and the test was successful, generate it now
+      if (config.iso_generation.generate && result.status === "success") {
+        await handleGenerateIso(config, result.buildId);
+      }
     } catch (error) {
       toast({
         title: "Test Error",
@@ -100,6 +108,51 @@ const TestRunner: React.FC = () => {
       console.error("Test execution error:", error);
     } finally {
       setIsRunning(false);
+    }
+  };
+  
+  // Generate ISO for a completed test
+  const handleGenerateIso = async (config: LFSTestConfiguration, buildId: string) => {
+    setIsGeneratingIso(true);
+    
+    try {
+      toast({
+        title: "ISO Generation Started",
+        description: "Creating bootable ISO image from the build...",
+      });
+      
+      const isoGenerator = new IsoGenerator();
+      const outputPath = `/tmp/iso/${buildId}/${config.iso_generation.iso_name || 'lfs.iso'}`;
+      
+      await isoGenerator.generateIso({
+        sourceDir: `/tmp/builds/${buildId}/lfs`,
+        outputPath,
+        label: config.name,
+        bootloader: "grub",
+        bootable: true
+      });
+      
+      // Update the test result with ISO information
+      if (testResult) {
+        setTestResult({
+          ...testResult,
+          isoGenerated: true,
+          isoDownloadUrl: `/api/iso/${buildId}/${config.iso_generation.iso_name || 'lfs.iso'}`
+        });
+      }
+      
+      toast({
+        title: "ISO Generation Complete",
+        description: `ISO image created successfully: ${config.iso_generation.iso_name || 'lfs.iso'}`,
+      });
+    } catch (error) {
+      toast({
+        title: "ISO Generation Failed",
+        description: `Failed to create ISO image: ${error}`,
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingIso(false);
     }
   };
   
@@ -218,7 +271,7 @@ const TestRunner: React.FC = () => {
         
         <Button
           onClick={handleRunTest}
-          disabled={!selectedConfigName || isRunning}
+          disabled={!selectedConfigName || isRunning || isGeneratingIso}
           className="flex items-center gap-2"
         >
           {isRunning ? "Running..." : "Run Test"} {!isRunning && <Play className="h-4 w-4" />}
