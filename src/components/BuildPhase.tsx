@@ -1,6 +1,6 @@
 
 import React from "react";
-import { BuildPhase as BuildPhaseEnum, BuildStep as BuildStepType } from "../lib/lfs-automation";
+import { BuildPhase as BuildPhaseEnum, BuildStep as BuildStepType, BuildStatus } from "../lib/lfs-automation";
 import BuildStep from "./BuildStep";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -23,7 +23,7 @@ const BuildPhaseComponent: React.FC<BuildPhaseProps> = ({
   const [expanded, setExpanded] = React.useState(isCurrentPhase);
   
   // Count steps by status
-  const completedSteps = steps.filter(s => s.status === 'completed').length;
+  const completedSteps = steps.filter(s => s.status === BuildStatus.COMPLETED).length;
   const totalSteps = steps.length;
   const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
   

@@ -1,7 +1,7 @@
 
 import React from "react";
 import { ChevronRight } from "lucide-react";
-import { BuildStep as BuildStepType } from "../lib/lfs-automation";
+import { BuildStep as BuildStepType, BuildStatus, BuildPhase, UserContext } from "../lib/lfs-automation";
 import BuildPhaseComponent from "./BuildPhase";
 import StatusBar from "./StatusBar";
 import InputModal from "./InputModal";
@@ -121,8 +121,8 @@ const LFSBuilder: React.FC = () => {
   const resetBuild = () => {
     const { LFS_BUILD_STEPS } = require("../lib/lfs-automation");
     setSteps(LFS_BUILD_STEPS);
-    setCurrentPhase("INITIAL_SETUP");
-    setCurrentContext("root");
+    setCurrentPhase(BuildPhase.INITIAL_SETUP);
+    setCurrentContext(UserContext.ROOT);
     appendToLog("LFS Builder reset");
     appendToLog("Ready to begin Linux From Scratch (LFS) 11.2 build process");
     toast({
@@ -170,11 +170,11 @@ const LFSBuilder: React.FC = () => {
               {Object.entries(stepsByPhase).map(([phase, phaseSteps]) => (
                 <BuildPhaseComponent
                   key={phase}
-                  phase={phase as any}
+                  phase={phase as BuildPhase}
                   steps={phaseSteps}
                   onStartStep={handleStartStep}
                   isCurrentPhase={currentPhase === phase}
-                  isCompleted={phaseStatus[phase as any]?.completed}
+                  isCompleted={phaseStatus[phase as BuildPhase]?.completed}
                 />
               ))}
             </div>

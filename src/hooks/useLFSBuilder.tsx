@@ -5,9 +5,9 @@ import {
   BuildStatus, 
   InputRequest, 
   LFS_BUILD_STEPS, 
-  UserContext 
+  UserContext,
+  BuildPhase
 } from "../lib/lfs-automation";
-import { BuildPhase } from "../lib/lfs-automation";
 import { useToast } from "@/components/ui/use-toast";
 
 export const useLFSBuilder = () => {
@@ -86,7 +86,7 @@ export const useLFSBuilder = () => {
     }
     
     // If all steps in current phase are done, move to next phase
-    const phases = Object.keys(BuildPhase) as BuildPhase[];
+    const phases = Object.values(BuildPhase);
     const currentPhaseIndex = phases.indexOf(currentPhase);
     
     if (currentPhaseIndex < phases.length - 1) {

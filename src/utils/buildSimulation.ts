@@ -85,12 +85,18 @@ export const runBuildStep = async (
   updateStepStatus(step.id, BuildStatus.IN_PROGRESS);
   setCurrentStepId(step.id);
   
-  // Handle input requirement
+  // Handle input requirement - THIS IS THE CRUCIAL PART FOR ALL BLOCKS TO ACCEPT INPUT
   if (step.requiresInput) {
     const inputType = step.id.includes("password") ? "password" : "text";
     const message = step.id.includes("password")
       ? `Enter password for ${step.id.includes("root") ? "root" : "lfs"} user:`
+      : step.id.includes("disk")
+      ? "Enter target disk device (e.g., /dev/sdb):"
+      : step.id.includes("sources")
+      ? "Enter path to LFS sources:"
       : `Input required for ${step.name}:`;
+    
+    appendToLog(`Requesting input: ${message}`);
     
     setInputRequest({
       type: inputType as "text" | "password",
