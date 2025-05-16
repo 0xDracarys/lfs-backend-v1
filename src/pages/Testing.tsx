@@ -1,11 +1,15 @@
 
-import React from "react";
+import React, { useState } from "react";
 import TestRunner from "@/components/TestRunner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, Disc, FileText } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, Disc, FileText, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Testing: React.FC = () => {
+  const [showAdvancedInfo, setShowAdvancedInfo] = useState<boolean>(false);
+  
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -45,20 +49,19 @@ const Testing: React.FC = () => {
               <CardContent>
                 <div className="space-y-4">
                   <p>
-                    ISO generation is automatically available for test configurations that have 
-                    <code className="px-1 py-0.5 bg-gray-100 rounded">iso_generation.generate</code> set to true.
+                    ISO generation creates bootable or non-bootable ISO images from your completed LFS builds.
+                    Test configurations with <code className="px-1 py-0.5 bg-gray-100 rounded">iso_generation.generate</code> set to true
+                    will automatically trigger ISO creation after a successful build.
                   </p>
                   
-                  <div className="bg-amber-50 border border-amber-200 rounded-md p-4 flex gap-3">
-                    <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="font-medium text-amber-800">Important Note</h4>
-                      <p className="text-amber-700 text-sm">
-                        The ISO generation is fully functional but runs in simulation mode. In a production environment, 
-                        it would use tools like xorriso or mkisofs to create real bootable ISO images.
-                      </p>
-                    </div>
-                  </div>
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertTitle>Simulation Mode</AlertTitle>
+                    <AlertDescription>
+                      The ISO generation is currently in simulation mode. In a production environment, 
+                      it would use tools like xorriso or mkisofs to create real bootable ISO images.
+                    </AlertDescription>
+                  </Alert>
                   
                   <p>
                     When a test run completes successfully, the ISO image will be generated automatically
@@ -74,18 +77,56 @@ const Testing: React.FC = () => {
                     <li><strong>iso_name</strong>: Name of the generated ISO file</li>
                     <li><strong>label</strong>: Volume label for the ISO</li>
                     <li><strong>bootloader</strong>: Bootloader to use (grub or isolinux)</li>
+                    <li><strong>bootable</strong>: Whether to make the ISO bootable</li>
                   </ul>
                   
-                  <h3 className="text-lg font-semibold mt-4">How ISO Generation Works</h3>
-                  <ol className="list-decimal pl-6 space-y-2">
-                    <li>The test builder completes the LFS build process</li>
-                    <li>If ISO generation is enabled, the IsoGenerator class is called</li>
-                    <li>A temporary directory structure is created for the ISO</li>
-                    <li>LFS build files are copied to this structure</li>
-                    <li>Bootloader files are added if the ISO is bootable</li>
-                    <li>The ISO image is created using xorriso/mkisofs (simulated in this demo)</li>
-                    <li>The ISO is made available for download</li>
-                  </ol>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowAdvancedInfo(!showAdvancedInfo)}
+                    className="mt-2"
+                  >
+                    {showAdvancedInfo ? "Hide" : "Show"} Advanced Information
+                  </Button>
+                  
+                  {showAdvancedInfo && (
+                    <div className="mt-4 border-t pt-4">
+                      <h3 className="text-lg font-semibold">How ISO Generation Works</h3>
+                      <ol className="list-decimal pl-6 space-y-2">
+                        <li>The test builder completes the LFS build process</li>
+                        <li>If ISO generation is enabled, the IsoGenerator class is called</li>
+                        <li>A temporary directory structure is created for the ISO</li>
+                        <li>LFS build files are copied to this structure</li>
+                        <li>System configuration files are created</li>
+                        <li>Bootloader files are added if the ISO is bootable</li>
+                        <li>The ISO image is created using xorriso/mkisofs (simulated in this demo)</li>
+                        <li>The ISO is made available for download</li>
+                        <li>Temporary files are cleaned up (optional)</li>
+                      </ol>
+                      
+                      <h3 className="text-lg font-semibold mt-4">Real-world ISO Generation</h3>
+                      <p>
+                        In a production environment, the ISO generation would use actual tools like xorriso,
+                        genisoimage, or mkisofs to create bootable ISO images. The generated ISOs would contain:
+                      </p>
+                      <ul className="list-disc pl-6 space-y-2">
+                        <li>A complete Linux file system hierarchy</li>
+                        <li>A bootable kernel and initial ramdisk</li>
+                        <li>A properly configured bootloader (GRUB or isolinux)</li>
+                        <li>All the binaries and libraries from the LFS build</li>
+                        <li>System configuration files</li>
+                      </ul>
+                      
+                      <h3 className="text-lg font-semibold mt-4">Using Generated ISOs</h3>
+                      <p>
+                        Generated ISO images can be:
+                      </p>
+                      <ul className="list-disc pl-6 space-y-2">
+                        <li>Burned to optical media (CD/DVD)</li>
+                        <li>Written to USB drives using dd or similar tools</li>
+                        <li>Tested in virtual machines (like QEMU, VirtualBox, VMware)</li>
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
