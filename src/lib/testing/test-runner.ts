@@ -2,6 +2,8 @@
 import { BuildStatus } from "../lfs-automation";
 import { LFSTestConfiguration, TestConfig, TestRunResult } from "./types";
 import { IsoGenerator } from "./iso-generator";
+import fs from 'fs';
+import path from 'path';
 
 /**
  * Main test runner for executing LFS Builder test cases
@@ -118,19 +120,38 @@ export class TestRunner {
   ): Promise<string> {
     console.log(`Generating test ISO for build ${buildId}`);
     
-    const isoGenerator = new IsoGenerator();
-    const isoName = config.iso_generation.iso_name || "lfs-test.iso";
-    const outputPath = `/tmp/iso/${buildId}/${isoName}`;
-    
-    await isoGenerator.generateIso({
-      sourceDir: `/tmp/builds/${buildId}/lfs`,
-      outputPath,
-      label: config.name,
-      bootloader: "grub",
-      bootable: true
-    });
-    
-    return outputPath;
+    try {
+      // Make sure the output directory exists
+      const outputDir = `/tmp/iso/${buildId}`;
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+      }
+      
+      const isoGenerator = new IsoGenerator();
+      const isoName = config.iso_generation.iso_name || "lfs-test.iso";
+      const outputPath = path.join(outputDir, isoName);
+      
+      // Generate the ISO image
+      await isoGenerator.generateIso({
+        sourceDir: `/tmp/builds/${buildId}/lfs`,
+        outputPath,
+        label: config.name,
+        bootloader: "grub",
+        bootable: true
+      });
+      
+      // Verify the ISO was created successfully
+      const isValid = await isoGenerator.verifyIso(outputPath);
+      
+      if (!isValid) {
+        throw new Error("Generated ISO verification failed");
+      }
+      
+      return outputPath;
+    } catch (error) {
+      console.error(`Error generating ISO for build ${buildId}:`, error);
+      throw new Error(`ISO generation failed: ${error}`);
+    }
   }
 }
 
@@ -143,6 +164,21 @@ export async function runTestBuild(config: LFSTestConfiguration): Promise<TestRu
   // Simulate a build process
   const startTime = new Date();
   const buildId = `build-${Date.now()}`;
+  
+  // Create build directory structure (for ISO generation)
+  const buildDir = `/tmp/builds/${buildId}/lfs`;
+  try {
+    if (!fs.existsSync(buildDir)) {
+      fs.mkdirSync(buildDir, { recursive: true });
+    }
+    
+    // Create some placeholder files in the build directory
+    fs.writeFileSync(`${buildDir}/etc-lfs-release`, 
+      `LFS TEST SYSTEM\nVersion: Test Build\nBuild ID: ${buildId}\nConfiguration: ${config.name}\n`);
+  } catch (error) {
+    console.warn(`Warning: Failed to create build directory: ${error}`);
+    // Continue anyway
+  }
   
   // For demo purposes, we'll simulate a delay and then return a result
   await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -171,19 +207,34 @@ export async function runTestBuild(config: LFSTestConfiguration): Promise<TestRu
     // If ISO generation was requested, we'll simulate that it was done
     if (config.iso_generation.generate) {
       // In a real implementation, we would generate the ISO here
-      // For now, we'll just pretend it was done
-      const isoName = config.iso_generation.iso_name || 'lfs.iso';
-      result.isoGenerated = true;
-      result.isoDownloadUrl = `/api/iso/${buildId}/${isoName}`;
-      
-      // Add ISO generation logs
-      result.logs.push(
-        "Starting ISO generation",
-        "Setting up ISO directory structure",
-        "Copying LFS files to ISO image",
-        "Installing bootloader",
-        `ISO created successfully: ${isoName}`
-      );
+      try {
+        // Create the output directory for ISOs
+        const isoDir = `/tmp/iso/${buildId}`;
+        if (!fs.existsSync(isoDir)) {
+          fs.mkdirSync(isoDir, { recursive: true });
+        }
+        
+        const isoName = config.iso_generation.iso_name || 'lfs.iso';
+        const outputPath = path.join(isoDir, isoName);
+        
+        // Create a placeholder ISO file (in a real implementation this would be generated)
+        fs.writeFileSync(outputPath, "Simulated ISO file content");
+        
+        result.isoGenerated = true;
+        result.isoDownloadUrl = `/api/iso/${buildId}/${isoName}`;
+        
+        // Add ISO generation logs
+        result.logs.push(
+          "Starting ISO generation",
+          "Setting up ISO directory structure",
+          "Copying LFS files to ISO image",
+          "Installing bootloader",
+          `ISO created successfully: ${isoName}`
+        );
+      } catch (error) {
+        console.error(`Error preparing ISO directory: ${error}`);
+        result.logs.push(`Error preparing ISO: ${error}`);
+      }
     }
     
     return result;

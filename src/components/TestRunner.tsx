@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
@@ -10,7 +9,7 @@ import { TEST_CONFIGURATIONS, getTestConfigurationByName, createCustomTestConfig
 import { LFSTestConfiguration, TestRunResult } from "@/lib/testing/types";
 import { runTestBuild } from "@/lib/testing/test-runner";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowDown, Play, Download, ListFilter } from "lucide-react";
+import { ArrowDown, Play, Download, ListFilter, FileDown } from "lucide-react";
 import LogViewer from "./LogViewer";
 import { IsoGenerator } from "@/lib/testing/iso-generator";
 
@@ -122,7 +121,8 @@ const TestRunner: React.FC = () => {
       });
       
       const isoGenerator = new IsoGenerator();
-      const outputPath = `/tmp/iso/${buildId}/${config.iso_generation.iso_name || 'lfs.iso'}`;
+      const isoName = config.iso_generation.iso_name || 'lfs.iso';
+      const outputPath = `/tmp/iso/${buildId}/${isoName}`;
       
       await isoGenerator.generateIso({
         sourceDir: `/tmp/builds/${buildId}/lfs`,
@@ -137,13 +137,26 @@ const TestRunner: React.FC = () => {
         setTestResult({
           ...testResult,
           isoGenerated: true,
-          isoDownloadUrl: `/api/iso/${buildId}/${config.iso_generation.iso_name || 'lfs.iso'}`
+          isoDownloadUrl: `/api/iso/${buildId}/${isoName}`
         });
+        
+        // Add ISO generation logs to test result logs
+        const updatedLogs = [
+          ...testResult.logs,
+          "ISO generation completed successfully",
+          `ISO available at: ${outputPath}`,
+          `ISO can be downloaded from: /api/iso/${buildId}/${isoName}`
+        ];
+        
+        setTestResult(prev => ({
+          ...prev!,
+          logs: updatedLogs
+        }));
       }
       
       toast({
         title: "ISO Generation Complete",
-        description: `ISO image created successfully: ${config.iso_generation.iso_name || 'lfs.iso'}`,
+        description: `ISO image created successfully: ${isoName}`,
       });
     } catch (error) {
       toast({
@@ -151,6 +164,19 @@ const TestRunner: React.FC = () => {
         description: `Failed to create ISO image: ${error}`,
         variant: "destructive"
       });
+      
+      if (testResult) {
+        // Add error logs to test result
+        const errorLogs = [
+          ...testResult.logs,
+          `ERROR: ISO generation failed: ${error}`
+        ];
+        
+        setTestResult(prev => ({
+          ...prev!,
+          logs: errorLogs
+        }));
+      }
     } finally {
       setIsGeneratingIso(false);
     }
@@ -310,7 +336,7 @@ const TestRunner: React.FC = () => {
                 <CardFooter>
                   <Button asChild className="w-full flex items-center justify-center gap-2">
                     <a href={testResult.isoDownloadUrl} download>
-                      <Download className="h-4 w-4" /> Download ISO
+                      <FileDown className="h-4 w-4" /> Download ISO Image
                     </a>
                   </Button>
                 </CardFooter>
