@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Database, Disc, Docker, HardDrive, Server, Workflow } from "lucide-react";
+import { Database, Disc, Cpu, HardDrive, Server, Workflow } from "lucide-react";
 
 const DockerArchitecture: React.FC = () => {
   return (
@@ -10,7 +10,7 @@ const DockerArchitecture: React.FC = () => {
       <Card className="mb-6">
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Docker className="w-6 h-6" />
+            <Cpu className="w-6 h-6" />
             <CardTitle>Docker Integration Architecture</CardTitle>
           </div>
           <CardDescription>
@@ -48,7 +48,7 @@ const DockerArchitecture: React.FC = () => {
             <div className="flex items-center justify-center">
               <div className="flex flex-col items-center">
                 <div className="w-14 h-14 flex items-center justify-center bg-blue-100 rounded-full border border-blue-300">
-                  <Docker className="w-8 h-8 text-blue-700" />
+                  <Cpu className="w-8 h-8 text-blue-700" />
                 </div>
                 <div className="mt-2 text-center">
                   <div className="text-xs bg-blue-100 rounded-full px-2 py-0.5">
