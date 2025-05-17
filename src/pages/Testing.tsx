@@ -254,7 +254,7 @@ const Testing: React.FC = () => {
           </TabsContent>
           
           <TabsContent value="architecture">
-            <DockerArchitecture />
+            <DockerArchitecture dockerAvailable={dockerAvailable} />
           </TabsContent>
           
           <TabsContent value="docs">
