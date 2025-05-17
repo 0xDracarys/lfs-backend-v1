@@ -1,9 +1,11 @@
+
 export interface IsoGenerationOptions {
   sourceDir: string;
   outputPath: string;
   label: string;
   bootloader: "grub" | "isolinux" | "none";
   bootable: boolean;
+  buildId: string;  // Added buildId to track which build created this ISO
 }
 
 export interface ExpectedOutcomes {

@@ -10,9 +10,10 @@ import { TEST_CONFIGURATIONS, getTestConfigurationByName, createCustomTestConfig
 import { LFSTestConfiguration, TestRunResult } from "@/lib/testing/types";
 import { runTestBuild } from "@/lib/testing/test-runner";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowDown, Play, Download, ListFilter, FileDown } from "lucide-react";
+import { ArrowDown, Play, ListFilter } from "lucide-react";
 import LogViewer from "./LogViewer";
 import { IsoGenerator } from "@/lib/testing/iso-generator";
+import IsoManager from "./IsoManager";
 
 interface TestRunnerProps {
   useDocker?: boolean;
@@ -43,6 +44,7 @@ const TestRunner: React.FC<TestRunnerProps> = ({ useDocker = false }) => {
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [testResult, setTestResult] = useState<TestRunResult | null>(null);
   const [isGeneratingIso, setIsGeneratingIso] = useState<boolean>(false);
+  const [isoRefreshTrigger, setIsoRefreshTrigger] = useState<number>(0);
   
   const { toast } = useToast();
   
@@ -100,6 +102,12 @@ const TestRunner: React.FC<TestRunnerProps> = ({ useDocker = false }) => {
       
       // Run the test
       const result = await runTestBuild(config);
+      
+      // Set build ID in the result if it's missing
+      if (!result.buildId) {
+        result.buildId = `build-${Date.now()}`;
+      }
+      
       setTestResult(result);
       
       toast({
@@ -141,7 +149,7 @@ const TestRunner: React.FC<TestRunnerProps> = ({ useDocker = false }) => {
       const isoGenerator = new IsoGenerator();
       isoGenerator.setUseDocker(useDocker);
       
-      const isoName = config.iso_generation.iso_name || 'lfs.iso';
+      const isoName = config.iso_generation.iso_name || `lfs-${config.name.toLowerCase().replace(/\s+/g, '-')}.iso`;
       const outputPath = `/tmp/iso/${buildId}/${isoName}`;
       
       await isoGenerator.generateIso({
@@ -149,7 +157,8 @@ const TestRunner: React.FC<TestRunnerProps> = ({ useDocker = false }) => {
         outputPath,
         label: config.name,
         bootloader: config.iso_generation.bootloader || "grub",
-        bootable: config.iso_generation.bootable !== false
+        bootable: config.iso_generation.bootable !== false,
+        buildId: buildId
       });
       
       // Update the test result with ISO information
@@ -172,6 +181,9 @@ const TestRunner: React.FC<TestRunnerProps> = ({ useDocker = false }) => {
           ...prev!,
           logs: updatedLogs
         }));
+        
+        // Trigger ISO manager to refresh
+        setIsoRefreshTrigger(prev => prev + 1);
       }
       
       toast({
@@ -378,7 +390,7 @@ const TestRunner: React.FC<TestRunnerProps> = ({ useDocker = false }) => {
       
       {/* Test Results Section */}
       {testResult && (
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 space-y-6">
           <h2 className="text-xl font-bold border-b pb-2">Test Results</h2>
           
           <div className="grid md:grid-cols-2 gap-6">
@@ -398,6 +410,8 @@ const TestRunner: React.FC<TestRunnerProps> = ({ useDocker = false }) => {
                 }</div>
                 <div><span className="font-medium">Phases Completed:</span> {testResult.completedPhases.join(', ')}</div>
                 <div><span className="font-medium">ISO Generation:</span> {
+                  isGeneratingIso ? 
+                  <span className="text-amber-500 animate-pulse">In progress...</span> : 
                   testResult.isoGenerated ? 
                   <span className="text-green-600">Completed</span> : 
                   <span>Not requested or pending</span>
@@ -409,15 +423,6 @@ const TestRunner: React.FC<TestRunnerProps> = ({ useDocker = false }) => {
                   </div>
                 )}
               </CardContent>
-              {testResult.isoGenerated && testResult.isoDownloadUrl && (
-                <CardFooter>
-                  <Button asChild className="w-full flex items-center justify-center gap-2">
-                    <a href={testResult.isoDownloadUrl} download>
-                      <FileDown className="h-4 w-4" /> Download ISO Image
-                    </a>
-                  </Button>
-                </CardFooter>
-              )}
             </Card>
             
             <Card>
@@ -433,6 +438,14 @@ const TestRunner: React.FC<TestRunnerProps> = ({ useDocker = false }) => {
                 <LogViewer logs={testResult.logs} maxHeight="300px" />
               </CardContent>
             </Card>
+          </div>
+          
+          {/* ISO Manager Component */}
+          <div className="mt-6">
+            <IsoManager 
+              currentBuildId={testResult.buildId} 
+              refreshTrigger={isoRefreshTrigger}
+            />
           </div>
         </div>
       )}
