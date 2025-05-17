@@ -176,21 +176,9 @@ export class DockerService {
    * Get the content of the Dockerfile
    */
   private getDockerfileContent(): string {
-    return `FROM ubuntu:22.04
-
-RUN apt-get update && apt-get install -y \\
-    xorriso \\
-    binutils \\
-    grub-pc-bin \\
-    grub-efi-amd64-bin \\
-    mtools \\
-    syslinux \\
-    isolinux \\
-    && apt-get clean \\
-    && rm -rf /var/lib/apt/lists/*
-
-# Create the ISO generation script
-RUN echo '#!/bin/bash
+    // Create a bash script as a string but properly escape characters
+    // that would cause issues in TypeScript template literals
+    const generateIsoScript = `#!/bin/bash
 set -e
 
 # Parse arguments
@@ -199,23 +187,23 @@ while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
     --source=*)
-      SOURCE="\\${key#*=}"
+      SOURCE="\${key#*=}"
       shift
       ;;
     --output=*)
-      OUTPUT="\\${key#*=}"
+      OUTPUT="\${key#*=}"
       shift
       ;;
     --label=*)
-      LABEL="\\${key#*=}"
+      LABEL="\${key#*=}"
       shift
       ;;
     --bootloader=*)
-      BOOTLOADER="\\${key#*=}"
+      BOOTLOADER="\${key#*=}"
       shift
       ;;
     --bootable=*)
-      BOOTABLE="\\${key#*=}"
+      BOOTABLE="\${key#*=}"
       shift
       ;;
     *)
@@ -226,11 +214,11 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Set defaults
-SOURCE=\\${SOURCE:-/lfs-source}
-OUTPUT=\\${OUTPUT:-/output/lfs.iso}
-LABEL=\\${LABEL:-LFS_TEST}
-BOOTLOADER=\\${BOOTLOADER:-grub}
-BOOTABLE=\\${BOOTABLE:-true}
+SOURCE=\${SOURCE:-/lfs-source}
+OUTPUT=\${OUTPUT:-/output/lfs.iso}
+LABEL=\${LABEL:-LFS_TEST}
+BOOTLOADER=\${BOOTLOADER:-grub}
+BOOTABLE=\${BOOTABLE:-true}
 
 echo "Creating ISO with the following parameters:"
 echo "Source: $SOURCE"
@@ -321,14 +309,30 @@ echo "Cleaning up temporary directory..."
 rm -rf $TEMP_DIR
 
 echo "ISO creation complete: $OUTPUT"
-ls -lh $OUTPUT
-' > /usr/local/bin/generate-iso
+ls -lh $OUTPUT`;
+
+    // Now build the Dockerfile content
+    return `FROM ubuntu:22.04
+
+RUN apt-get update && apt-get install -y \\
+    xorriso \\
+    binutils \\
+    grub-pc-bin \\
+    grub-efi-amd64-bin \\
+    mtools \\
+    syslinux \\
+    isolinux \\
+    && apt-get clean \\
+    && rm -rf /var/lib/apt/lists/*
+
+# Create the ISO generation script
+RUN echo '${generateIsoScript}' > /usr/local/bin/generate-iso
 
 RUN chmod +x /usr/local/bin/generate-iso
 
 WORKDIR /
 
-ENTRYPOINT ["/bin/bash"]`
+ENTRYPOINT ["/bin/bash"]`;
   }
   
   /**
@@ -354,7 +358,7 @@ ENTRYPOINT ["/bin/bash"]`
       await this.ensureDirectoryExists(filePath);
       
       // Write the file using echo to avoid issues with special characters
-      await execPromise(`echo '${content.replace(/'/g, "'\\''")}' > ${filePath}`);
+      await execPromise(`echo '${content.replace(/'/g, "'\\''")}'  > ${filePath}`);
     } catch (error) {
       console.error(`Failed to write file ${filePath}:`, error);
       throw error;
