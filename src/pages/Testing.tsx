@@ -85,7 +85,7 @@ const Testing: React.FC = () => {
             {checkingDocker ? (
               <Badge variant="outline" className="animate-pulse">Checking Docker...</Badge>
             ) : (
-              <Badge variant={dockerAvailable ? "success" : "destructive"} className="flex gap-1 items-center">
+              <Badge variant={dockerAvailable ? "secondary" : "destructive"} className="flex gap-1 items-center">
                 {dockerAvailable ? <Check size={14} /> : <X size={14} />}
                 Docker {dockerAvailable ? "Available" : "Not Available"}
               </Badge>
