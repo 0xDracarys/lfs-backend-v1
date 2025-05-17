@@ -1,9 +1,9 @@
-
 import { IsoGenerationOptions } from "./types";
 import fs from 'fs';
 import path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { DockerService } from "./docker-service";
 
 const execPromise = promisify(exec);
 
@@ -11,6 +11,28 @@ const execPromise = promisify(exec);
  * Class responsible for generating ISO images from LFS builds
  */
 export class IsoGenerator {
+  private dockerService: DockerService;
+  private useDocker: boolean = false;
+  
+  constructor() {
+    this.dockerService = new DockerService();
+    // We'll check if Docker is available when generateIso is called
+  }
+  
+  /**
+   * Set whether to use Docker for ISO generation
+   */
+  setUseDocker(useDocker: boolean): void {
+    this.useDocker = useDocker;
+  }
+  
+  /**
+   * Check if Docker is available
+   */
+  async isDockerAvailable(): Promise<boolean> {
+    return this.dockerService.checkDockerAvailability();
+  }
+  
   /**
    * Generate an ISO image from a completed LFS build
    */
@@ -22,10 +44,58 @@ export class IsoGenerator {
       const outputDir = path.dirname(options.outputPath);
       await this.ensureDirectoryExists(outputDir);
       
-      // Create a temporary directory for ISO preparation
-      const isoTempDir = `${outputDir}/iso-temp-${Date.now()}`;
-      await this.ensureDirectoryExists(isoTempDir);
+      // Check for Docker availability if we want to use it
+      if (this.useDocker) {
+        const dockerAvailable = await this.dockerService.checkDockerAvailability();
+        if (dockerAvailable) {
+          return this.generateIsoWithDocker(options);
+        } else {
+          console.log("Docker is not available, falling back to simulation mode");
+        }
+      }
       
+      // If we're not using Docker or Docker is not available, use the simulated approach
+      return this.generateSimulatedIso(options);
+    } catch (error) {
+      console.error(`ISO generation failed:`, error);
+      throw new Error(`Failed to generate ISO: ${error}`);
+    }
+  }
+  
+  /**
+   * Generate ISO using Docker
+   */
+  private async generateIsoWithDocker(options: IsoGenerationOptions): Promise<string> {
+    console.log("Generating ISO using Docker...");
+    
+    const result = await this.dockerService.runIsoGeneration({
+      sourceDir: options.sourceDir,
+      outputPath: options.outputPath,
+      volumeLabel: options.label,
+      bootloader: options.bootloader,
+      bootable: options.bootable
+    });
+    
+    if (result.success) {
+      console.log("Docker ISO generation successful");
+      return options.outputPath;
+    } else {
+      console.error("Docker ISO generation failed:", result.logs);
+      throw new Error(`Docker ISO generation failed: ${result.logs.join('\n')}`);
+    }
+  }
+  
+  /**
+   * Generate a simulated ISO (fallback method when Docker is not available)
+   */
+  private async generateSimulatedIso(options: IsoGenerationOptions): Promise<string> {
+    console.log("Generating simulated ISO...");
+    
+    // Create a temporary directory for ISO preparation
+    const isoTempDir = `${path.dirname(options.outputPath)}/iso-temp-${Date.now()}`;
+    await this.ensureDirectoryExists(isoTempDir);
+    
+    try {
       // Setup the ISO structure
       await this.createIsoStructure(isoTempDir, options);
       
@@ -34,17 +104,17 @@ export class IsoGenerator {
         await this.setupBootloader(isoTempDir, options.bootloader);
       }
       
-      // Generate the actual ISO image using mkisofs or xorriso
-      await this.createIsoImage(isoTempDir, options);
+      // Generate the simulated ISO image
+      await this.simulateIsoCreation(isoTempDir, options.outputPath, options.label);
       
       // Clean up temporary files
       await this.cleanup(isoTempDir);
       
-      console.log(`ISO created successfully at: ${options.outputPath}`);
+      console.log(`Simulated ISO created successfully at: ${options.outputPath}`);
       return options.outputPath;
     } catch (error) {
-      console.error(`ISO generation failed:`, error);
-      throw new Error(`Failed to generate ISO: ${error}`);
+      console.error(`Error in simulated ISO creation:`, error);
+      throw new Error(`Simulated ISO generation failed: ${error}`);
     }
   }
   
@@ -367,7 +437,11 @@ LABEL verbose
     }
     
     try {
-      // In a real implementation, we would use tools like `isoinfo` to inspect the ISO
+      if (this.useDocker) {
+        // In a real implementation with Docker, we could use a container to mount and verify the ISO
+        console.log("Would use Docker to verify the ISO contents");
+      }
+      
       const stats = fs.statSync(isoPath);
       const isValid = stats.isFile() && stats.size > 0;
       
@@ -385,9 +459,7 @@ LABEL verbose
   }
   
   /**
-   * Download a generated ISO image
-   * In a real environment, this would be handled by the server
-   * For our simulation, we'll return the path to the file
+   * Get download URL for an ISO image
    */
   getIsoDownloadUrl(buildId: string, isoName: string): string {
     return `/api/iso/${buildId}/${isoName}`;

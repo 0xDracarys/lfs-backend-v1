@@ -1,4 +1,3 @@
-
 import { BuildPhase, UserContext } from "../lfs-automation";
 import { LFSTestConfiguration, TestConfiguration } from "./types";
 
@@ -96,49 +95,76 @@ export const DEFAULT_TEST_CONFIGURATIONS: Record<string, TestConfiguration> = {
   }
 };
 
+export interface IsoGenerationConfig {
+  generate: boolean;
+  iso_name?: string;
+  bootable?: boolean;
+  bootloader?: "grub" | "isolinux" | "none";
+}
+
 /**
  * Predefined test configurations for LFS Builder
  */
 export const TEST_CONFIGURATIONS: LFSTestConfiguration[] = [
   {
-    name: "Default Build Test",
-    description: "Tests the default LFS build configuration with minimal setup",
-    target_disk: "/dev/sdb",
+    name: "Basic LFS Build",
+    description: "Standard LFS build with minimal options",
+    target_disk: "/dev/sda",
     sources_path: "/sources",
     scripts_path: "/scripts",
     iso_generation: {
-      generate: false
+      generate: true,
+      iso_name: "lfs-basic.iso",
+      bootable: true,
+      bootloader: "grub"
     },
     expected_outcomes: {
       should_complete: true
     }
   },
   {
-    name: "ISO Generation Test",
-    description: "Tests the LFS build with ISO generation at the end",
-    target_disk: "/dev/sdc",
-    sources_path: "/sources/lfs-11.2",
-    scripts_path: "/scripts/iso-build",
+    name: "Developer Build",
+    description: "LFS build with development tools",
+    target_disk: "/dev/sdb",
+    sources_path: "/sources-dev",
+    scripts_path: "/scripts-dev",
     iso_generation: {
       generate: true,
-      iso_name: "lfs-test.iso"
+      iso_name: "lfs-dev.iso",
+      bootable: true,
+      bootloader: "grub"
     },
     expected_outcomes: {
       should_complete: true
     }
   },
   {
-    name: "Error Handling Test",
-    description: "Test that deliberately triggers an error to verify error handling",
-    target_disk: "/invalid/disk/path",
-    sources_path: "/nonexistent/sources",
-    scripts_path: "/scripts",
+    name: "Minimal Build",
+    description: "Minimal LFS build without extras",
+    target_disk: "/dev/sdc",
+    sources_path: "/sources-min",
+    scripts_path: "/scripts-min",
+    iso_generation: {
+      generate: true,
+      iso_name: "lfs-minimal.iso",
+      bootable: false
+    },
+    expected_outcomes: {
+      should_complete: true
+    }
+  },
+  {
+    name: "Expected Failure",
+    description: "Build that should fail for testing",
+    target_disk: "/dev/invalid",
+    sources_path: "/sources-bad",
+    scripts_path: "/scripts-bad",
     iso_generation: {
       generate: false
     },
     expected_outcomes: {
       should_complete: false,
-      expected_error: "Invalid disk path"
+      expected_error: "Invalid disk device"
     }
   }
 ];
@@ -154,21 +180,25 @@ export function getTestConfigurationByName(name: string): LFSTestConfiguration |
  * Create a custom test configuration
  */
 export function createCustomTestConfiguration(
-  name: string,
-  targetDisk: string,
-  sourcesPath: string,
-  scriptsPath: string,
-  generateIso: boolean
+  name: string, 
+  targetDisk: string, 
+  sourcesPath: string, 
+  scriptsPath: string, 
+  generateIso: boolean = false,
+  bootable: boolean = true,
+  bootloader: "grub" | "isolinux" | "none" = "grub"
 ): LFSTestConfiguration {
   return {
     name,
-    description: `Custom test configuration: ${name}`,
+    description: "Custom test configuration",
     target_disk: targetDisk,
     sources_path: sourcesPath,
     scripts_path: scriptsPath,
     iso_generation: {
       generate: generateIso,
-      iso_name: generateIso ? `${name.toLowerCase().replace(/\s+/g, '-')}.iso` : undefined
+      iso_name: `${name.toLowerCase().replace(/\s+/g, "-")}.iso`,
+      bootable,
+      bootloader
     },
     expected_outcomes: {
       should_complete: true

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
@@ -13,7 +14,11 @@ import { ArrowDown, Play, Download, ListFilter, FileDown } from "lucide-react";
 import LogViewer from "./LogViewer";
 import { IsoGenerator } from "@/lib/testing/iso-generator";
 
-const TestRunner: React.FC = () => {
+interface TestRunnerProps {
+  useDocker?: boolean;
+}
+
+const TestRunner: React.FC<TestRunnerProps> = ({ useDocker = false }) => {
   // State for test configuration selection and customization
   const [selectedConfigName, setSelectedConfigName] = useState<string>("");
   const [customConfig, setCustomConfig] = useState<{
@@ -22,12 +27,16 @@ const TestRunner: React.FC = () => {
     sourcesPath: string;
     scriptsPath: string;
     generateIso: boolean;
+    bootable: boolean;
+    bootloader: "grub" | "isolinux" | "none";
   }>({
     name: "Custom Test",
     targetDisk: "/dev/sdb",
     sourcesPath: "/path/to/sources",
     scriptsPath: "/path/to/scripts",
-    generateIso: true
+    generateIso: true,
+    bootable: true,
+    bootloader: "grub"
   });
   
   // State for test execution
@@ -55,7 +64,9 @@ const TestRunner: React.FC = () => {
         customConfig.targetDisk,
         customConfig.sourcesPath,
         customConfig.scriptsPath,
-        customConfig.generateIso
+        customConfig.generateIso,
+        customConfig.bootable,
+        customConfig.bootloader
       );
     }
     
@@ -83,6 +94,11 @@ const TestRunner: React.FC = () => {
         description: `Running test: ${config.name}`,
       });
       
+      // Configure ISO generator to use Docker if available and requested
+      const isoGenerator = new IsoGenerator();
+      isoGenerator.setUseDocker(useDocker);
+      
+      // Run the test
       const result = await runTestBuild(config);
       setTestResult(result);
       
@@ -117,10 +133,14 @@ const TestRunner: React.FC = () => {
     try {
       toast({
         title: "ISO Generation Started",
-        description: "Creating bootable ISO image from the build...",
+        description: useDocker 
+          ? "Creating bootable ISO image using Docker..."
+          : "Creating simulated ISO image...",
       });
       
       const isoGenerator = new IsoGenerator();
+      isoGenerator.setUseDocker(useDocker);
+      
       const isoName = config.iso_generation.iso_name || 'lfs.iso';
       const outputPath = `/tmp/iso/${buildId}/${isoName}`;
       
@@ -128,8 +148,8 @@ const TestRunner: React.FC = () => {
         sourceDir: `/tmp/builds/${buildId}/lfs`,
         outputPath,
         label: config.name,
-        bootloader: "grub",
-        bootable: true
+        bootloader: config.iso_generation.bootloader || "grub",
+        bootable: config.iso_generation.bootable !== false
       });
       
       // Update the test result with ISO information
@@ -143,7 +163,7 @@ const TestRunner: React.FC = () => {
         // Add ISO generation logs to test result logs
         const updatedLogs = [
           ...testResult.logs,
-          "ISO generation completed successfully",
+          useDocker ? "Docker ISO generation completed successfully" : "ISO generation completed successfully",
           `ISO available at: ${outputPath}`,
           `ISO can be downloaded from: /api/iso/${buildId}/${isoName}`
         ];
@@ -212,6 +232,9 @@ const TestRunner: React.FC = () => {
                   <div className="space-y-1 text-sm">
                     <div><span className="font-medium">Disk:</span> {config.target_disk}</div>
                     <div><span className="font-medium">Generate ISO:</span> {config.iso_generation.generate ? 'Yes' : 'No'}</div>
+                    {config.iso_generation.generate && (
+                      <div><span className="font-medium">Bootable:</span> {config.iso_generation.bootable !== false ? 'Yes' : 'No'}</div>
+                    )}
                     <div>
                       <span className="font-medium">Expected Outcome:</span> 
                       {config.expected_outcomes.should_complete ? 'Complete' : 'Fail'}
@@ -265,15 +288,64 @@ const TestRunner: React.FC = () => {
               </div>
             </div>
             
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="custom-generate-iso"
-                checked={customConfig.generateIso}
-                onCheckedChange={(checked) => 
-                  handleCustomConfigChange('generateIso', checked === true)
-                }
-              />
-              <Label htmlFor="custom-generate-iso">Generate ISO after build</Label>
+            <div className="border-t pt-3">
+              <h3 className="font-medium mb-2">ISO Options</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="custom-generate-iso"
+                    checked={customConfig.generateIso}
+                    onCheckedChange={(checked) => 
+                      handleCustomConfigChange('generateIso', checked === true)
+                    }
+                  />
+                  <Label htmlFor="custom-generate-iso">Generate ISO after build</Label>
+                </div>
+                
+                {customConfig.generateIso && (
+                  <>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="custom-bootable"
+                        checked={customConfig.bootable}
+                        onCheckedChange={(checked) => 
+                          handleCustomConfigChange('bootable', checked === true)
+                        }
+                      />
+                      <Label htmlFor="custom-bootable">Make ISO bootable</Label>
+                    </div>
+                    
+                    {customConfig.bootable && (
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="custom-bootloader">Bootloader</Label>
+                        <div className="flex gap-4">
+                          <div className="flex items-center space-x-2">
+                            <input 
+                              type="radio" 
+                              id="bootloader-grub" 
+                              name="bootloader" 
+                              checked={customConfig.bootloader === "grub"} 
+                              onChange={() => handleCustomConfigChange('bootloader', "grub")}
+                            />
+                            <label htmlFor="bootloader-grub">GRUB</label>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            <input 
+                              type="radio" 
+                              id="bootloader-isolinux" 
+                              name="bootloader" 
+                              checked={customConfig.bootloader === "isolinux"} 
+                              onChange={() => handleCustomConfigChange('bootloader', "isolinux")}
+                            />
+                            <label htmlFor="bootloader-isolinux">ISOLINUX</label>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
             
             <Button 
@@ -325,6 +397,11 @@ const TestRunner: React.FC = () => {
                   'In progress'
                 }</div>
                 <div><span className="font-medium">Phases Completed:</span> {testResult.completedPhases.join(', ')}</div>
+                <div><span className="font-medium">ISO Generation:</span> {
+                  testResult.isoGenerated ? 
+                  <span className="text-green-600">Completed</span> : 
+                  <span>Not requested or pending</span>
+                }</div>
                 {testResult.failedStep && (
                   <div className="text-red-500">
                     <span className="font-medium">Failed at step:</span> {testResult.failedStep.stepId}

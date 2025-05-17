@@ -1,14 +1,70 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import TestRunner from "@/components/TestRunner";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Disc, FileText, Info } from "lucide-react";
+import { AlertCircle, Disc, FileText, Info, Check, X, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { IsoGenerator } from "@/lib/testing/iso-generator";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/components/ui/use-toast";
 
 const Testing: React.FC = () => {
   const [showAdvancedInfo, setShowAdvancedInfo] = useState<boolean>(false);
+  const [dockerAvailable, setDockerAvailable] = useState<boolean | null>(null);
+  const [useDocker, setUseDocker] = useState<boolean>(false);
+  const [checkingDocker, setCheckingDocker] = useState<boolean>(false);
+  const { toast } = useToast();
+  
+  // Check if Docker is available when the component mounts
+  useEffect(() => {
+    checkDockerAvailability();
+  }, []);
+  
+  // Check Docker availability
+  const checkDockerAvailability = async () => {
+    setCheckingDocker(true);
+    try {
+      const isoGenerator = new IsoGenerator();
+      const available = await isoGenerator.isDockerAvailable();
+      setDockerAvailable(available);
+      if (available) {
+        setUseDocker(true);
+      }
+    } catch (error) {
+      console.error("Error checking Docker:", error);
+      setDockerAvailable(false);
+    } finally {
+      setCheckingDocker(false);
+    }
+  };
+  
+  // Toggle Docker usage
+  const handleToggleDocker = (checked: boolean) => {
+    if (checked && !dockerAvailable) {
+      toast({
+        title: "Docker Not Available",
+        description: "Docker is not available on this system. Make sure Docker is installed and running.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setUseDocker(checked);
+    
+    // Update the IsoGenerator globally
+    const isoGenerator = new IsoGenerator();
+    isoGenerator.setUseDocker(checked);
+    
+    toast({
+      title: checked ? "Docker Enabled" : "Docker Disabled",
+      description: checked 
+        ? "ISO generation will now use Docker for real ISO creation"
+        : "ISO generation will use simulation mode"
+    });
+  };
   
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -18,6 +74,32 @@ const Testing: React.FC = () => {
           <p className="text-gray-600">
             Test your LFS builds and generate bootable ISO images
           </p>
+        </div>
+        
+        <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <h2 className="text-lg font-medium">ISO Generation Mode</h2>
+            <p className="text-sm text-gray-500">Select how ISO images are created</p>
+          </div>
+          <div className="flex items-center gap-4">
+            {checkingDocker ? (
+              <Badge variant="outline" className="animate-pulse">Checking Docker...</Badge>
+            ) : (
+              <Badge variant={dockerAvailable ? "success" : "destructive"} className="flex gap-1 items-center">
+                {dockerAvailable ? <Check size={14} /> : <X size={14} />}
+                Docker {dockerAvailable ? "Available" : "Not Available"}
+              </Badge>
+            )}
+            <div className="flex items-center gap-2">
+              <span className="text-sm">Simulation</span>
+              <Switch 
+                checked={useDocker} 
+                disabled={!dockerAvailable} 
+                onCheckedChange={handleToggleDocker}
+              />
+              <span className="text-sm">Docker</span>
+            </div>
+          </div>
         </div>
         
         <Tabs defaultValue="runner" className="mb-8">
@@ -32,7 +114,7 @@ const Testing: React.FC = () => {
           </TabsList>
           
           <TabsContent value="runner">
-            <TestRunner />
+            <TestRunner useDocker={useDocker} />
           </TabsContent>
           
           <TabsContent value="iso">
@@ -54,12 +136,21 @@ const Testing: React.FC = () => {
                     will automatically trigger ISO creation after a successful build.
                   </p>
                   
-                  <Alert>
-                    <Info className="h-4 w-4" />
-                    <AlertTitle>Simulation Mode</AlertTitle>
+                  <Alert className={dockerAvailable && useDocker ? "bg-green-50 border-green-200" : ""}>
+                    {dockerAvailable && useDocker ? (
+                      <Terminal className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Info className="h-4 w-4" />
+                    )}
+                    <AlertTitle>
+                      {dockerAvailable && useDocker ? "Docker Mode" : "Simulation Mode"}
+                    </AlertTitle>
                     <AlertDescription>
-                      The ISO generation is currently in simulation mode. In a production environment, 
-                      it would use tools like xorriso or mkisofs to create real bootable ISO images.
+                      {dockerAvailable && useDocker ? (
+                        "ISO generation will use Docker to create real bootable ISO images using xorriso."
+                      ) : (
+                        "The ISO generation is currently in simulation mode. In a production environment, it would use tools like xorriso or mkisofs to create real bootable ISO images."
+                      )}
                     </AlertDescription>
                   </Alert>
                   
@@ -91,29 +182,40 @@ const Testing: React.FC = () => {
                   {showAdvancedInfo && (
                     <div className="mt-4 border-t pt-4">
                       <h3 className="text-lg font-semibold">How ISO Generation Works</h3>
-                      <ol className="list-decimal pl-6 space-y-2">
-                        <li>The test builder completes the LFS build process</li>
-                        <li>If ISO generation is enabled, the IsoGenerator class is called</li>
-                        <li>A temporary directory structure is created for the ISO</li>
-                        <li>LFS build files are copied to this structure</li>
-                        <li>System configuration files are created</li>
-                        <li>Bootloader files are added if the ISO is bootable</li>
-                        <li>The ISO image is created using xorriso/mkisofs (simulated in this demo)</li>
-                        <li>The ISO is made available for download</li>
-                        <li>Temporary files are cleaned up (optional)</li>
-                      </ol>
+                      <div className="grid md:grid-cols-2 gap-6 mt-4">
+                        <div>
+                          <h4 className="font-medium">Docker Mode (Real ISO creation)</h4>
+                          <ol className="list-decimal pl-6 space-y-2 mt-2">
+                            <li>Docker container is launched from an image with ISO creation tools</li>
+                            <li>The LFS build directory is mounted as a read-only volume</li>
+                            <li>An output volume is mounted for the generated ISO</li>
+                            <li>The container runs xorriso to create a real bootable ISO image</li>
+                            <li>The generated ISO is available for download</li>
+                          </ol>
+                        </div>
+                        <div>
+                          <h4 className="font-medium">Simulation Mode</h4>
+                          <ol className="list-decimal pl-6 space-y-2 mt-2">
+                            <li>A temporary directory structure is created</li>
+                            <li>LFS build files are simulated</li>
+                            <li>System configuration files are created</li>
+                            <li>Bootloader files are added if ISO should be bootable</li>
+                            <li>A simulated ISO file is created</li>
+                            <li>Temporary files are cleaned up</li>
+                          </ol>
+                        </div>
+                      </div>
                       
-                      <h3 className="text-lg font-semibold mt-4">Real-world ISO Generation</h3>
+                      <h3 className="text-lg font-semibold mt-6">Docker Image Contents</h3>
                       <p>
-                        In a production environment, the ISO generation would use actual tools like xorriso,
-                        genisoimage, or mkisofs to create bootable ISO images. The generated ISOs would contain:
+                        The Docker image used for ISO generation contains:
                       </p>
-                      <ul className="list-disc pl-6 space-y-2">
-                        <li>A complete Linux file system hierarchy</li>
-                        <li>A bootable kernel and initial ramdisk</li>
-                        <li>A properly configured bootloader (GRUB or isolinux)</li>
-                        <li>All the binaries and libraries from the LFS build</li>
-                        <li>System configuration files</li>
+                      <ul className="list-disc pl-6 space-y-1">
+                        <li>Ubuntu 22.04 base system</li>
+                        <li>xorriso for ISO creation</li>
+                        <li>GRUB bootloader tools</li>
+                        <li>ISOLINUX/SYSLINUX bootloader tools</li>
+                        <li>Custom ISO generation script</li>
                       </ul>
                       
                       <h3 className="text-lg font-semibold mt-4">Using Generated ISOs</h3>
@@ -129,6 +231,21 @@ const Testing: React.FC = () => {
                   )}
                 </div>
               </CardContent>
+              <CardFooter className="flex justify-between">
+                <p className="text-sm text-gray-500">
+                  {useDocker ? 
+                    "Using Docker for real ISO generation" : 
+                    "Simulation mode active - real ISO creation disabled"}
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={checkDockerAvailability}
+                  disabled={checkingDocker}
+                >
+                  {checkingDocker ? "Checking..." : "Refresh Docker Status"}
+                </Button>
+              </CardFooter>
             </Card>
           </TabsContent>
           
@@ -168,6 +285,17 @@ const Testing: React.FC = () => {
                     <li>Completed phases</li>
                     <li>Test logs</li>
                     <li>ISO download link (if ISO generation was enabled)</li>
+                  </ul>
+                  
+                  <h3 className="text-lg font-semibold mt-4">Docker Integration</h3>
+                  <p>
+                    When Docker is available and enabled:
+                  </p>
+                  <ul className="list-disc pl-6 space-y-1">
+                    <li>ISO generation will create real bootable ISO images</li>
+                    <li>A Docker image with all needed tools will be automatically built</li>
+                    <li>The LFS build files will be mounted into the Docker container</li>
+                    <li>An actual ISO file will be created using industry-standard tools</li>
                   </ul>
                 </div>
               </CardContent>
