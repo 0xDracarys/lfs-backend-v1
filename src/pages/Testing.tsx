@@ -4,12 +4,13 @@ import TestRunner from "@/components/TestRunner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Disc, FileText, Info, Check, X, Terminal } from "lucide-react";
+import { AlertCircle, Disc, FileText, Info, Check, X, Terminal, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IsoGenerator } from "@/lib/testing/iso-generator";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
+import DockerArchitecture from "@/components/DockerArchitecture";
 
 const Testing: React.FC = () => {
   const [showAdvancedInfo, setShowAdvancedInfo] = useState<boolean>(false);
@@ -107,6 +108,9 @@ const Testing: React.FC = () => {
             <TabsTrigger value="runner">Test Runner</TabsTrigger>
             <TabsTrigger value="iso" className="flex items-center gap-1">
               <Disc className="w-4 h-4" /> ISO Generation
+            </TabsTrigger>
+            <TabsTrigger value="architecture" className="flex items-center gap-1">
+              <Layers className="w-4 h-4" /> Architecture
             </TabsTrigger>
             <TabsTrigger value="docs" className="flex items-center gap-1">
               <FileText className="w-4 h-4" /> Documentation
@@ -247,6 +251,10 @@ const Testing: React.FC = () => {
                 </Button>
               </CardFooter>
             </Card>
+          </TabsContent>
+          
+          <TabsContent value="architecture">
+            <DockerArchitecture />
           </TabsContent>
           
           <TabsContent value="docs">

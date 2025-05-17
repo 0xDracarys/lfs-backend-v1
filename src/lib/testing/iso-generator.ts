@@ -4,6 +4,7 @@ import { DockerService } from "./docker-service";
 
 /**
  * Class responsible for generating ISO images from LFS builds
+ * This class coordinates the ISO generation process, using Docker when available
  */
 export class IsoGenerator {
   private dockerService: DockerService;
@@ -21,7 +22,7 @@ export class IsoGenerator {
   }
   
   /**
-   * Check if Docker is available
+   * Check if Docker is available for ISO generation
    */
   async isDockerAvailable(): Promise<boolean> {
     return this.dockerService.checkDockerAvailability();
@@ -29,6 +30,9 @@ export class IsoGenerator {
   
   /**
    * Generate an ISO image from a completed LFS build
+   * 
+   * @param options Configuration options for the ISO generation
+   * @returns Path to the generated ISO file
    */
   async generateIso(options: IsoGenerationOptions): Promise<string> {
     console.log(`Starting ISO generation with options:`, options);
@@ -104,6 +108,7 @@ export class IsoGenerator {
   
   /**
    * Simulate the creation of an ISO file with actual content
+   * This method simulates the steps that would occur in a real ISO creation process
    */
   private async simulateIsoCreation(options: IsoGenerationOptions): Promise<void> {
     // Simulate a delay for "processing time"
@@ -115,9 +120,24 @@ export class IsoGenerator {
     
     if (options.bootable) {
       console.log(`Setting up ${options.bootloader} bootloader`);
+      
+      if (options.bootloader === 'grub') {
+        console.log("Creating GRUB bootloader configuration");
+        console.log("Generating El Torito boot image");
+        console.log("Building boot catalog");
+      } else if (options.bootloader === 'isolinux') {
+        console.log("Creating ISOLINUX configuration");
+        console.log("Copying ISOLINUX bootloader files");
+        console.log("Setting up boot menu");
+      }
+      
+      console.log("Creating placeholder kernel and initrd");
     } else {
       console.log("Creating data-only ISO (non-bootable)");
     }
+    
+    // Simulate xorriso command execution
+    console.log("Running xorriso to generate ISO image");
     
     // Simulate more processing time
     await new Promise(resolve => setTimeout(resolve, 1000));
