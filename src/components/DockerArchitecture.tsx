@@ -3,17 +3,22 @@ import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Cpu } from "lucide-react";
 import { DockerDiagram, ProcessFlow, DockerFeatures, DockerRequirements } from "./docker";
+import { Button } from "@/components/ui/button";
 
 interface DockerArchitectureProps {
   dockerAvailable?: boolean | null;
 }
 
+/**
+ * Component that displays the Docker architecture and integration details
+ * Shows diagrams, process flows, features, and requirements
+ */
 const DockerArchitecture: React.FC<DockerArchitectureProps> = ({ dockerAvailable = null }) => {
   const [showRequirements, setShowRequirements] = useState(false);
   
   return (
-    <div className="p-4">
-      <Card className="mb-6">
+    <div className="p-4 space-y-6">
+      <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
             <Cpu className="w-6 h-6" />
@@ -23,7 +28,7 @@ const DockerArchitecture: React.FC<DockerArchitectureProps> = ({ dockerAvailable
             How LFS Builder leverages Docker for reproducible builds and ISO generation
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-8">
           <DockerDiagram />
           <ProcessFlow />
         </CardContent>
@@ -33,13 +38,14 @@ const DockerArchitecture: React.FC<DockerArchitectureProps> = ({ dockerAvailable
       
       {showRequirements && <DockerRequirements dockerAvailable={dockerAvailable} />}
       
-      <div className="mt-6 flex justify-center">
-        <button 
-          className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+      <div className="flex justify-center">
+        <Button 
+          variant="outline"
           onClick={() => setShowRequirements(!showRequirements)}
+          className="text-sm"
         >
           {showRequirements ? "Hide Requirements" : "Show Docker Requirements"}
-        </button>
+        </Button>
       </div>
     </div>
   );

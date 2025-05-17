@@ -1,6 +1,6 @@
 
 import { IsoGenerationOptions } from "./types";
-import { DockerService } from "./docker-service";
+import { DockerService, DockerIsoOptions } from "./docker-service";
 
 /**
  * Class responsible for generating ISO images from LFS builds
@@ -65,13 +65,15 @@ export class IsoGenerator {
   private async generateIsoWithDocker(options: IsoGenerationOptions): Promise<string> {
     console.log("Generating ISO using Docker...");
     
-    const result = await this.dockerService.runIsoGeneration({
+    const dockerOptions: DockerIsoOptions = {
       sourceDir: options.sourceDir,
       outputPath: options.outputPath,
       volumeLabel: options.label,
       bootloader: options.bootloader,
       bootable: options.bootable
-    });
+    };
+    
+    const result = await this.dockerService.runIsoGeneration(dockerOptions);
     
     if (result.success) {
       console.log("Docker ISO generation successful");

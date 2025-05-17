@@ -1,23 +1,24 @@
-
 /**
  * Browser-compatible service for simulating Docker interactions
- * Note: This is a browser-compatible simulation since child_process can't be used in the browser
+ * This service handles all Docker-related operations and provides a consistent interface
+ * whether Docker is actually available or we're using simulations.
  */
 export class DockerService {
   private readonly imageName = 'lfs-iso-builder';
   private isDockerAvailable: boolean | null = null;
   
   /**
-   * Simulate checking Docker availability
-   * In a browser environment, we'll simulate Docker availability
+   * Check if Docker is available on the system
+   * In a browser environment, this simulates Docker availability
+   * In a real backend, this would make actual Docker API calls
+   * 
+   * @returns Promise<boolean> - True if Docker is available, false otherwise
    */
   async checkDockerAvailability(): Promise<boolean> {
     if (this.isDockerAvailable !== null) {
       return this.isDockerAvailable;
     }
     
-    // In a browser environment, we'll simulate Docker availability check
-    // In production, this would use server-side APIs to check actual Docker status
     console.log("Browser environment detected, simulating Docker availability check");
     
     try {
@@ -39,15 +40,31 @@ export class DockerService {
   }
   
   /**
-   * Simulate building Docker image
+   * Force the Docker availability status
+   * Useful for testing and simulation purposes
+   * 
+   * @param available - Set Docker availability status
+   */
+  setDockerAvailability(available: boolean): void {
+    this.isDockerAvailable = available;
+    console.log(`Docker availability manually set to: ${available ? 'available' : 'unavailable'}`);
+  }
+  
+  /**
+   * Build the Docker image needed for ISO generation
+   * In a browser environment, this simulates the image building process
+   * 
+   * @param forceBuild - Force rebuild even if image exists
+   * @returns Promise<boolean> - True if build succeeded, false otherwise
    */
   async buildDockerImage(forceBuild: boolean = false): Promise<boolean> {
     if (!await this.checkDockerAvailability()) {
+      console.log('Docker is not available, cannot build image');
       return false;
     }
     
     try {
-      console.log('Browser environment detected, simulating Docker image build');
+      console.log('Simulating Docker image build');
       
       // Simulate a network delay for image building
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -61,15 +78,12 @@ export class DockerService {
   }
   
   /**
-   * Simulate running ISO generation in Docker container
+   * Run ISO generation process in a Docker container
+   * 
+   * @param options - Configuration options for ISO generation
+   * @returns Promise<{success: boolean; logs: string[]}> - Result of the container execution
    */
-  async runIsoGeneration(options: {
-    sourceDir: string;
-    outputPath: string;
-    volumeLabel: string;
-    bootloader: "grub" | "isolinux" | "none";
-    bootable: boolean;
-  }): Promise<{success: boolean; logs: string[]}> {
+  async runIsoGeneration(options: DockerIsoOptions): Promise<DockerExecutionResult> {
     if (!await this.checkDockerAvailability()) {
       return { 
         success: false, 
@@ -81,43 +95,21 @@ export class DockerService {
     logs.push('Starting ISO generation in Docker container (browser simulation)');
     
     try {
-      // Simulate Docker image building
+      // Ensure Docker image is ready
       if (!await this.buildDockerImage()) {
         logs.push('Failed to build or find Docker image');
         return { success: false, logs };
       }
       
       logs.push('Docker image is ready');
-      logs.push(`Source directory: ${options.sourceDir}`);
-      logs.push(`Output path: ${options.outputPath}`);
-      logs.push(`Volume label: ${options.volumeLabel}`);
-      logs.push(`Bootloader: ${options.bootloader}`);
-      logs.push(`Bootable: ${options.bootable ? 'yes' : 'no'}`);
+      this.logIsoOptions(logs, options);
       
       // Simulate the Docker process with a delay
       logs.push('Running Docker container...');
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Simulate the ISO generation process
-      logs.push('Starting ISO generation process in container');
-      logs.push('Creating ISO directory structure');
-      logs.push('Copying LFS files to ISO image');
-      
-      if (options.bootable) {
-        logs.push(`Setting up ${options.bootloader} bootloader`);
-        
-        if (options.bootloader === 'grub') {
-          logs.push('Installing GRUB bootloader files');
-          logs.push('Creating GRUB configuration');
-          logs.push('Building El Torito boot image');
-        } else if (options.bootloader === 'isolinux') {
-          logs.push('Installing ISOLINUX bootloader files');
-          logs.push('Creating ISOLINUX configuration');
-        }
-      }
-      
-      logs.push('Running xorriso to create ISO image');
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await this.simulateIsoGenerationSteps(logs, options);
       
       // 10% chance of failure for realism
       if (Math.random() < 0.1) {
@@ -136,7 +128,55 @@ export class DockerService {
   }
   
   /**
-   * Get Docker command for debugging purposes
+   * Log ISO generation options to the logs array
+   * 
+   * @param logs - Array to append logs to
+   * @param options - ISO generation options
+   */
+  private logIsoOptions(logs: string[], options: DockerIsoOptions): void {
+    logs.push(`Source directory: ${options.sourceDir}`);
+    logs.push(`Output path: ${options.outputPath}`);
+    logs.push(`Volume label: ${options.volumeLabel}`);
+    logs.push(`Bootloader: ${options.bootloader}`);
+    logs.push(`Bootable: ${options.bootable ? 'yes' : 'no'}`);
+  }
+  
+  /**
+   * Simulate the steps of ISO generation inside a Docker container
+   * 
+   * @param logs - Array to append logs to
+   * @param options - ISO generation options
+   */
+  private async simulateIsoGenerationSteps(logs: string[], options: DockerIsoOptions): Promise<void> {
+    logs.push('Starting ISO generation process in container');
+    logs.push('Creating ISO directory structure');
+    logs.push('Copying LFS files to ISO image');
+    
+    if (options.bootable) {
+      logs.push(`Setting up ${options.bootloader} bootloader`);
+      
+      if (options.bootloader === 'grub') {
+        logs.push('Installing GRUB bootloader files');
+        logs.push('Creating GRUB configuration');
+        logs.push('Building El Torito boot image');
+      } else if (options.bootloader === 'isolinux') {
+        logs.push('Installing ISOLINUX bootloader files');
+        logs.push('Creating ISOLINUX configuration');
+      }
+    }
+    
+    logs.push('Running xorriso to create ISO image');
+    await new Promise(resolve => setTimeout(resolve, 1500));
+  }
+  
+  /**
+   * Get Docker command string for debugging purposes
+   * This returns a command that would be used in a real environment
+   * 
+   * @param options - ISO generation options
+   * @param outputDir - Output directory for ISO
+   * @param isoFileName - Name of the ISO file
+   * @returns string - Docker command
    */
   getDockerCommand(
     options: {
@@ -334,4 +374,23 @@ echo "ISO creation complete: $OUTPUT"
 ls -lh $OUTPUT
 `;
   }
+}
+
+/**
+ * Options for ISO generation with Docker
+ */
+export interface DockerIsoOptions {
+  sourceDir: string;
+  outputPath: string;
+  volumeLabel: string;
+  bootloader: "grub" | "isolinux" | "none";
+  bootable: boolean;
+}
+
+/**
+ * Result of Docker command execution
+ */
+export interface DockerExecutionResult {
+  success: boolean;
+  logs: string[];
 }

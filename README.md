@@ -1,3 +1,4 @@
+
 # LFS Builder
 
 LFS Builder is an advanced automation tool designed to streamline the Linux From Scratch (LFS) build process. This application provides a robust graphical user interface for managing the complex steps involved in creating a Linux system from source, with Docker integration for reproducible builds.
@@ -19,14 +20,30 @@ The application follows a modular architecture:
 ### Backend Components
 
 - **DockerService**: Manages Docker operations for ISO generation and LFS building
+  - Handles Docker availability checking
+  - Manages Docker image building
+  - Executes commands within Docker containers
+  - Provides comprehensive error handling for Docker operations
 - **IsoGenerator**: Creates bootable or data-only ISO images from LFS builds
+  - Supports multiple bootloader options (GRUB/ISOLINUX)
+  - Uses Docker when available for reliable ISO creation
+  - Falls back to simulation mode when Docker is unavailable
+  - Provides detailed logging of the ISO generation process
 - **TestRunner**: Executes test cases for LFS builds with specific configurations
+  - Manages test execution and reporting
+  - Coordinates Docker and ISO generation operations
+  - Handles test configurations and validation
 
 ### Frontend Components
 
 - **LFSBuilder**: Main component for the LFS build process
 - **TestRunner UI**: Interface for running tests and viewing results
 - **ISO Generation UI**: Controls for ISO creation and configuration
+- **DockerArchitecture**: Visual representation of Docker integration
+  - Displays the Docker architecture diagram
+  - Shows the process flow for Docker-based operations
+  - Details Docker features and integration points
+  - Lists Docker requirements and availability status
 
 ## Docker Integration
 
@@ -37,6 +54,8 @@ LFS Builder uses Docker to ensure reproducible builds and isolate the build envi
 3. **Volume Mounting**: Source files and outputs are shared via Docker volumes
 4. **Error Handling**: Comprehensive Docker operation error handling and logging
 
+The DockerService class provides a consistent interface for all Docker operations, handling availability checking, image building, and container execution. When Docker is not available, the application falls back to simulation mode, allowing for development and testing without Docker dependencies.
+
 ## ISO Generation
 
 ISO generation supports multiple bootloaders and configurations:
@@ -45,7 +64,15 @@ ISO generation supports multiple bootloaders and configurations:
 - **ISOLINUX**: Alternative bootloader option
 - **Non-bootable**: Data-only ISO option
 
-The process leverages industry-standard tools like `xorriso` within Docker containers.
+The process leverages industry-standard tools like `xorriso` within Docker containers. The IsoGenerator class coordinates this process, using Docker when available and providing a simulation mode for environments without Docker.
+
+The ISO generation process includes:
+1. Setting up the ISO directory structure
+2. Copying the LFS build files
+3. Installing and configuring the selected bootloader
+4. Creating the ISO image using xorriso
+5. Verifying the ISO integrity
+6. Providing a download link for the generated ISO
 
 ## Getting Started
 
@@ -108,10 +135,26 @@ Predefined test configurations are available, or create custom ones with:
 ### Key Files
 
 - `src/lib/testing/docker-service.ts`: Docker integration
+  - Manages Docker availability checking
+  - Handles Docker image building
+  - Executes commands within Docker containers
+  - Provides comprehensive error handling
 - `src/lib/testing/iso-generator.ts`: ISO creation logic
+  - Coordinates the ISO generation process
+  - Uses Docker when available
+  - Provides simulation mode for development
+  - Handles verification and download URL generation
 - `src/lib/testing/test-runner.ts`: Test execution system
+  - Manages test execution and reporting
+  - Coordinates Docker and ISO generation operations
+  - Handles test configurations and validation
 - `src/components/TestRunner.tsx`: Test UI component
+  - Provides user interface for test configuration
+  - Displays test results and logs
+  - Handles ISO generation requests
 - `src/lib/testing/test-configurations.ts`: Test configuration definitions
+  - Defines predefined test configurations
+  - Provides utility functions for creating custom configurations
 
 ### Adding New Test Configurations
 
@@ -147,18 +190,23 @@ export const TEST_CONFIGURATIONS: LFSTestConfiguration[] = [
 - Ensure Docker daemon is running
 - Check Docker permissions (user may need to be in the docker group)
 - Verify Docker API access with `docker info`
+- Check the Docker availability status in the Testing interface
+- If Docker is not available, the application will fall back to simulation mode
 
 ### ISO Generation Failures
 
 - Check Docker logs for detailed error information
 - Verify source directory contains valid LFS build files
 - Ensure output directory is writable
+- Check the specified bootloader configuration
+- Review the logs for specific error messages
 
 ### Build Process Errors
 
 - Review log output for specific error messages
 - Verify all dependencies are installed
 - Check if target disk has sufficient space and permissions
+- Verify source files are available and readable
 
 ## Contributing
 
