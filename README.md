@@ -1,5 +1,6 @@
 
 # LFS Builder
+URL: lfs-backend-v1.lovable.app
 
 LFS Builder is an advanced automation tool designed to streamline the Linux From Scratch (LFS) build process. This application provides a robust graphical user interface for managing the complex steps involved in creating a Linux system from source, with Docker integration for reproducible builds.
 
