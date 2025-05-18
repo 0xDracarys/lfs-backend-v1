@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 interface InputModalProps {
-  request: (InputRequest & { placeholder?: string }) | null;
+  request: (InputRequest & { placeholder?: string; description?: string }) | null;
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (value: string) => void;
