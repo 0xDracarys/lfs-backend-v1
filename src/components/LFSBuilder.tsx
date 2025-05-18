@@ -1,6 +1,5 @@
-
 import React from "react";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Info } from "lucide-react";
 import { BuildStep as BuildStepType, BuildStatus, BuildPhase, UserContext } from "../lib/lfs-automation";
 import BuildPhaseComponent from "./BuildPhase";
 import StatusBar from "./StatusBar";
@@ -10,6 +9,9 @@ import { runBuildStep } from "../utils/buildSimulation";
 import Header from "./Header";
 import BuildSummary from "./BuildSummary";
 import OutputMonitor from "./OutputMonitor";
+import MainNavigation from "./MainNavigation";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const LFSBuilder: React.FC = () => {
   const {
@@ -147,8 +149,22 @@ const LFSBuilder: React.FC = () => {
     });
   };
 
+  // Generate input placeholder based on step ID
+  const getInputPlaceholder = (stepId: string): string => {
+    if (stepId.includes("disk")) return "e.g., /dev/sda or /dev/sdb";
+    if (stepId.includes("partition")) return "e.g., /dev/sda1";
+    if (stepId.includes("path")) return "e.g., /mnt/lfs";
+    if (stepId.includes("url")) return "e.g., http://mirrors.kernel.org/lfs/...";
+    if (stepId.includes("password")) return "Enter a secure password";
+    if (stepId.includes("name")) return "e.g., lfs-user";
+    return "Enter your input here";
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
+      {/* Navigation */}
+      <MainNavigation />
+      
       {/* Header */}
       <Header 
         buildRunning={buildRunning}
@@ -156,8 +172,32 @@ const LFSBuilder: React.FC = () => {
         resetBuild={resetBuild}
       />
       
+      {/* Getting Started Guide */}
+      <div className="container mx-auto px-4 py-2 mt-2">
+        <Card className="bg-blue-50 border-blue-200 mb-4">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Info className="h-5 w-5 mr-2 text-blue-600" />
+              Getting Started with LFS Builder
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ol className="list-decimal list-inside space-y-1 text-sm">
+              <li>Start with the <strong>Initial Setup</strong> phase - click on each step to begin</li>
+              <li>When prompted, enter the required information (disk paths, partition info, etc.)</li>
+              <li>Once Initial Setup is complete, use the <strong>Start Build</strong> button to continue automatically</li>
+              <li>The build will progress through each phase: Initial Setup → LFS User Build → Chroot Setup</li>
+              <li>You can pause the build at any time using the <strong>Pause Build</strong> button</li>
+            </ol>
+            <p className="mt-2 text-sm font-medium">
+              Required inputs: target disk (e.g. /dev/sdb), partition info, mount points, source paths
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+      
       {/* Main content */}
-      <div className="container mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6">
+      <div className="container mx-auto px-4 py-4 flex flex-col lg:flex-row gap-6">
         {/* Left column - Build steps */}
         <div className="w-full lg:w-2/5 space-y-4">
           <div className="bg-white p-4 rounded-lg shadow">
@@ -179,6 +219,32 @@ const LFSBuilder: React.FC = () => {
               ))}
             </div>
           </div>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Input Examples & Requirements</CardTitle>
+            </CardHeader>
+            <CardContent className="text-xs space-y-2">
+              <div>
+                <span className="font-medium">Disk Path:</span> /dev/sdb (use a dedicated disk)
+              </div>
+              <div>
+                <span className="font-medium">LFS Partition:</span> /dev/sdb1 (at least 20GB recommended)
+              </div>
+              <div>
+                <span className="font-medium">Mount Point:</span> /mnt/lfs
+              </div>
+              <div>
+                <span className="font-medium">Sources Path:</span> /mnt/lfs/sources
+              </div>
+              <div>
+                <span className="font-medium">Required Space:</span> At least 20GB disk space
+              </div>
+              <div>
+                <span className="font-medium">Packages URL:</span> Default mirrors will be used if empty
+              </div>
+            </CardContent>
+          </Card>
         </div>
         
         {/* Right column - Logs and progress */}
@@ -199,9 +265,12 @@ const LFSBuilder: React.FC = () => {
         buildProgress={buildProgress}
       />
       
-      {/* Input modal */}
+      {/* Input modal with placeholders */}
       <InputModal
-        request={inputRequest}
+        request={inputRequest ? {
+          ...inputRequest,
+          placeholder: getInputPlaceholder(currentStepId || '')
+        } : null}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleInputSubmit}

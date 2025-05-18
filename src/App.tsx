@@ -19,7 +19,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LFSBuilder />} />
-          <Route path="/home" element={<Index />} />
+          <Route path="/configs" element={<Index />} />
           <Route path="/testing" element={<Testing />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

@@ -60,15 +60,30 @@ const IsoManager: React.FC<IsoManagerProps> = ({ currentBuildId, refreshTrigger 
   };
   
   const handleDownload = (iso: IsoMetadata) => {
-    const downloadUrl = `/api/iso/${iso.buildId}/${iso.isoName}`;
-    
+    // In a real application with a backend, we would have a real download endpoint
+    // For now, we'll simulate a download by creating a dummy file
     toast({
-      title: "Download Started",
-      description: `Downloading ${iso.isoName}...`,
+      title: "Simulated Download",
+      description: `In a production environment, this would download ${iso.isoName}`,
     });
     
-    // In a real application, this would trigger the actual download
-    window.open(downloadUrl, "_blank");
+    // Create a blob with some text content to simulate the ISO file
+    const blob = new Blob([`This is a simulated ISO file: ${iso.isoName}\n
+Build ID: ${iso.buildId}\n
+Created: ${iso.timestamp}\n
+Configuration: ${iso.configName}\n
+This is just a simulation as we don't have a real server to generate actual ISO files.`], 
+    { type: 'text/plain' });
+    
+    // Create a download link and trigger it
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = iso.isoName;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   };
   
   // Helper to create placeholder data for browser demo

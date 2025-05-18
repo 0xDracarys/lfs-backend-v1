@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 interface InputModalProps {
-  request: InputRequest | null;
+  request: (InputRequest & { placeholder?: string }) | null;
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (value: string) => void;
@@ -60,14 +60,22 @@ const InputModal: React.FC<InputModalProps> = ({
                 </Button>
               </div>
             ) : (
-              <Input
-                type={request.type === "password" ? "password" : "text"}
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                placeholder={request.default || ""}
-                className="w-full"
-                autoFocus
-              />
+              <div className="space-y-2">
+                {request.description && (
+                  <p className="text-sm text-gray-500">{request.description}</p>
+                )}
+                <Input
+                  type={request.type === "password" ? "password" : "text"}
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  placeholder={request.placeholder || request.default || ""}
+                  className="w-full"
+                  autoFocus
+                />
+                {request.placeholder && (
+                  <p className="text-xs text-gray-400">Example: {request.placeholder}</p>
+                )}
+              </div>
             )}
           </div>
           <DialogFooter>
