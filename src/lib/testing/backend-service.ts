@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 // Configuration for the backend service
 const BACKEND_CONFIG = {
-  apiUrl: process.env.ISO_BACKEND_URL || "http://localhost:3000",
+  apiUrl: import.meta.env.VITE_ISO_BACKEND_URL || "http://localhost:3000",
   endpoints: {
     generateIso: "/api/iso/generate",
     status: "/api/iso/status",
@@ -85,7 +85,8 @@ export class BackendService {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestData),
-        timeout: BACKEND_CONFIG.timeout
+        // Remove timeout as it's not a standard fetch option
+        signal: AbortSignal.timeout(BACKEND_CONFIG.timeout)
       });
       
       if (!response.ok) {

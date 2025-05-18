@@ -1,15 +1,21 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileDown, Disc, Info, RefreshCw, AlertCircle, CheckCircle2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { IsoGenerator, IsoMetadata } from "@/lib/testing/iso-generator";
 import { format } from "date-fns";
 import { backendService } from "@/lib/testing/backend-service";
 import { Progress } from "@/components/ui/progress";
+
+// Extend the IsoMetadata type to include jobId
+declare module "@/lib/testing/iso-generator" {
+  interface IsoMetadata {
+    jobId?: string;
+  }
+}
 
 interface IsoManagerProps {
   currentBuildId?: string;
@@ -27,8 +33,6 @@ const IsoManager: React.FC<IsoManagerProps> = ({ currentBuildId, refreshTrigger 
     message?: string;
     jobId?: string;
   }>>({});
-  
-  const { toast } = useToast();
   
   useEffect(() => {
     loadIsoData();
@@ -141,8 +145,10 @@ This is just a simulation as we don't have a real server to generate actual ISO 
         document.body.removeChild(a);
       }
     } catch (error) {
-      toast.error("Download failed", {
-        description: `Error downloading ISO: ${error}`
+      toast({
+        title: "Download failed",
+        description: `Error downloading ISO: ${error}`,
+        variant: "destructive"
       });
     }
   };
@@ -158,7 +164,8 @@ This is just a simulation as we don't have a real server to generate actual ISO 
         }
       }));
       
-      toast.loading("Starting ISO generation", {
+      toast({
+        title: "Starting ISO generation",
         description: "Sending request to generate a real bootable ISO..."
       });
       
@@ -169,7 +176,7 @@ This is just a simulation as we don't have a real server to generate actual ISO 
         outputPath: `/tmp/iso/${iso.buildId}/${iso.isoName}`,
         label: iso.label || "LFS",
         bootable: iso.bootable,
-        bootloader: iso.bootloader || "grub"
+        bootloader: iso.bootloader || "grub" as "grub" | "isolinux" | "none",
       });
       
       if (result.jobId) {
@@ -224,14 +231,18 @@ This is just a simulation as we don't have a real server to generate actual ISO 
           }
         }, 3000);
       } else {
-        toast.error("Failed to start ISO generation", {
-          description: "No job ID returned from the backend."
+        toast({
+          title: "Failed to start ISO generation",
+          description: "No job ID returned from the backend.",
+          variant: "destructive"
         });
       }
     } catch (error) {
       console.error("Error generating real ISO:", error);
-      toast.error("ISO generation failed", {
-        description: `Error: ${error}`
+      toast({
+        title: "ISO generation failed",
+        description: `Error: ${error}`,
+        variant: "destructive"
       });
       
       setGeneratingIsos(prev => ({

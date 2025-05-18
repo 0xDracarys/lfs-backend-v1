@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import MainNavigation from "../components/MainNavigation";
 import IsoManager from "../components/IsoManager";
@@ -10,16 +9,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Disc, Download, ArrowRight, Server } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 const IsoManagementPage = () => {
   const [isoRefreshTrigger, setIsoRefreshTrigger] = useState<number>(0);
   const [backendUrl, setBackendUrl] = useState<string>(
-    process.env.ISO_BACKEND_URL || "http://localhost:3000"
+    import.meta.env.VITE_ISO_BACKEND_URL || "http://localhost:3000"
   );
   const [isConfiguring, setIsConfiguring] = useState<boolean>(false);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [isConnected, setIsConnected] = useState<boolean>(false);
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
   
   const handleRefresh = () => {
     setIsoRefreshTrigger(prev => prev + 1);

@@ -1,11 +1,17 @@
 
-import React from "react";
+import React, { useState } from "react";
 import MainNavigation from "../components/MainNavigation";
 import TestRunner from "../components/TestRunner";
 import DockerSetup from "../components/DockerSetup";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Testing = () => {
+  const [useDocker, setUseDocker] = useState(false);
+  
+  const handleDockerSetupComplete = (isAvailable: boolean) => {
+    setUseDocker(isAvailable);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <MainNavigation />
@@ -20,11 +26,11 @@ const Testing = () => {
           </TabsList>
           
           <TabsContent value="test-runner">
-            <TestRunner useDocker={true} />
+            <TestRunner useDocker={useDocker} />
           </TabsContent>
           
           <TabsContent value="docker-setup">
-            <DockerSetup />
+            <DockerSetup onSetupComplete={handleDockerSetupComplete} />
           </TabsContent>
         </Tabs>
       </div>
