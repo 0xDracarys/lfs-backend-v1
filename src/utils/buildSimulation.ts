@@ -8,6 +8,8 @@ export const simulatePartitionDisk = async (appendToLog: (message: string) => vo
   await new Promise(resolve => setTimeout(resolve, 500));
   appendToLog("Welcome to fdisk.");
   await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Simulate user input sequence to fdisk
   appendToLog("Command (m for help): n");
   await new Promise(resolve => setTimeout(resolve, 500));
   appendToLog("Partition type: p (primary)");
@@ -18,14 +20,20 @@ export const simulatePartitionDisk = async (appendToLog: (message: string) => vo
   await new Promise(resolve => setTimeout(resolve, 500));
   appendToLog("Last sector: [default]");
   await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // This is the critical part - writing changes to disk
   appendToLog("Command (m for help): w");
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise(resolve => setTimeout(resolve, 1000));
   appendToLog("The partition table has been altered.");
+  appendToLog("Syncing disks.");
   await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Format the partition
   appendToLog("Formatting partition...");
   appendToLog("Command: mkfs.ext4 /dev/sdb1");
   await new Promise(resolve => setTimeout(resolve, 1000));
   appendToLog("Writing superblocks and filesystem accounting information: done");
+  appendToLog("Partition process completed successfully");
 };
 
 // Simulate script execution with progress updates
@@ -142,18 +150,22 @@ export const runBuildStep = async (
     if (buildRunning) {
       const nextStep = findNextStep();
       if (nextStep) {
-        runBuildStep(nextStep, {
-          updateStepStatus,
-          setCurrentStepId,
-          appendToLog,
-          appendToScriptOutput,
-          setInputRequest,
-          setIsModalOpen,
-          buildRunning,
-          findNextStep,
-          setBuildRunning,
-          toast
-        });
+        // Add a small delay before starting the next step
+        // This helps prevent the appearance of looping and gives visual feedback
+        setTimeout(() => {
+          runBuildStep(nextStep, {
+            updateStepStatus,
+            setCurrentStepId,
+            appendToLog,
+            appendToScriptOutput,
+            setInputRequest,
+            setIsModalOpen,
+            buildRunning,
+            findNextStep,
+            setBuildRunning,
+            toast
+          });
+        }, 800);
       } else {
         setBuildRunning(false);
         toast({

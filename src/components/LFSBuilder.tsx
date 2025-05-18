@@ -1,6 +1,8 @@
+
 import React from "react";
 import { ChevronRight, Info } from "lucide-react";
 import { BuildStep as BuildStepType, BuildStatus, BuildPhase, UserContext } from "../lib/lfs-automation";
+import { LFS_BUILD_STEPS } from "../lib/lfs-automation";
 import BuildPhaseComponent from "./BuildPhase";
 import StatusBar from "./StatusBar";
 import InputModal from "./InputModal";
@@ -65,18 +67,21 @@ const LFSBuilder: React.FC = () => {
     if (buildRunning) {
       const nextStep = findNextStep();
       if (nextStep) {
-        runBuildStep(nextStep, {
-          updateStepStatus,
-          setCurrentStepId,
-          appendToLog,
-          appendToScriptOutput,
-          setInputRequest,
-          setIsModalOpen,
-          buildRunning,
-          findNextStep,
-          setBuildRunning,
-          toast
-        });
+        // Add a small delay before starting the next step
+        setTimeout(() => {
+          runBuildStep(nextStep, {
+            updateStepStatus,
+            setCurrentStepId,
+            appendToLog,
+            appendToScriptOutput,
+            setInputRequest,
+            setIsModalOpen,
+            buildRunning,
+            findNextStep,
+            setBuildRunning,
+            toast
+          });
+        }, 800);
       } else {
         setBuildRunning(false);
       }
@@ -121,7 +126,7 @@ const LFSBuilder: React.FC = () => {
 
   // Reset the build
   const resetBuild = () => {
-    const { LFS_BUILD_STEPS } = require("../lib/lfs-automation");
+    // Directly import from the module instead of using require()
     setSteps(LFS_BUILD_STEPS);
     setCurrentPhase(BuildPhase.INITIAL_SETUP);
     setCurrentContext(UserContext.ROOT);
