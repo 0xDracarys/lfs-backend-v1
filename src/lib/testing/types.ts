@@ -1,11 +1,10 @@
-
 export interface IsoGenerationOptions {
   sourceDir: string;
   outputPath: string;
   label: string;
-  bootloader: "grub" | "isolinux" | "none";
   bootable: boolean;
-  buildId: string;  // Added buildId to track which build created this ISO
+  bootloader: "grub" | "isolinux" | "none";
+  buildId: string;
 }
 
 export interface ExpectedOutcomes {
@@ -56,4 +55,32 @@ export interface TestRunResult {
   };
   isoGenerated?: boolean;
   isoDownloadUrl?: string;
+}
+
+// Interface for ISO metadata
+export interface IsoMetadata {
+  buildId: string;
+  isoName: string;
+  timestamp: string;
+  configName: string;
+  outputPath: string;
+  bootable: boolean;
+  bootloader: string;
+  label?: string;
+  jobId?: string;
+}
+
+// Define docker service specific types
+export interface DockerIsoOptions {
+  sourceDir: string;
+  outputPath: string;
+  volumeLabel: string;
+  bootable: boolean;
+  bootloader: "grub" | "isolinux" | "none";
+}
+
+export interface DockerResult {
+  success: boolean;
+  logs: string[];
+  output?: string;
 }

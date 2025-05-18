@@ -11,6 +11,7 @@ const MainNavigation: React.FC = () => {
   const navItems = [
     { path: "/", title: "LFS Builder", icon: Home },
     { path: "/testing", title: "Testing", icon: FileText },
+    { path: "/iso", title: "ISO Management", icon: Disc },
     { path: "/configs", title: "Configurations", icon: Settings }
   ];
   

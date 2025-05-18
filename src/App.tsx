@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LFSBuilder from "./components/LFSBuilder";
 import Testing from "./pages/Testing";
+import IsoManagementPage from "./pages/IsoManagement";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ const App = () => (
           <Route path="/" element={<LFSBuilder />} />
           <Route path="/configs" element={<Index />} />
           <Route path="/testing" element={<Testing />} />
+          <Route path="/iso" element={<IsoManagementPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

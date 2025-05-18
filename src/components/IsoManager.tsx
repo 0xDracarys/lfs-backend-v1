@@ -4,10 +4,12 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileDown, Disc, Info, RefreshCw } from "lucide-react";
+import { FileDown, Disc, Info, RefreshCw, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { IsoGenerator, IsoMetadata } from "@/lib/testing/iso-generator";
 import { format } from "date-fns";
+import { backendService } from "@/lib/testing/backend-service";
+import { Progress } from "@/components/ui/progress";
 
 interface IsoManagerProps {
   currentBuildId?: string;
@@ -19,6 +21,13 @@ const IsoManager: React.FC<IsoManagerProps> = ({ currentBuildId, refreshTrigger 
   const [buildIsos, setBuildIsos] = useState<IsoMetadata[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<"current" | "all">("current");
+  const [generatingIsos, setGeneratingIsos] = useState<Record<string, {
+    status: "pending" | "processing" | "completed" | "failed";
+    progress: number;
+    message?: string;
+    jobId?: string;
+  }>>({});
+  
   const { toast } = useToast();
   
   useEffect(() => {
@@ -42,6 +51,47 @@ const IsoManager: React.FC<IsoManagerProps> = ({ currentBuildId, refreshTrigger 
       } else {
         setBuildIsos([]);
       }
+      
+      // Check for any in-progress ISO generations
+      const newGeneratingIsos = { ...generatingIsos };
+      let hasChanges = false;
+      
+      for (const isoId in newGeneratingIsos) {
+        if (newGeneratingIsos[isoId].status === "pending" || newGeneratingIsos[isoId].status === "processing") {
+          try {
+            if (newGeneratingIsos[isoId].jobId) {
+              const status = await backendService.checkIsoGenerationStatus(newGeneratingIsos[isoId].jobId!);
+              
+              if (status.status !== newGeneratingIsos[isoId].status || 
+                  status.progress !== newGeneratingIsos[isoId].progress) {
+                newGeneratingIsos[isoId] = {
+                  status: status.status,
+                  progress: status.progress || newGeneratingIsos[isoId].progress,
+                  message: status.message,
+                  jobId: newGeneratingIsos[isoId].jobId
+                };
+                hasChanges = true;
+                
+                if (status.status === "completed") {
+                  toast.success(`ISO generation completed: ${isoId}`, {
+                    description: status.message || "Your ISO is ready to download!"
+                  });
+                } else if (status.status === "failed") {
+                  toast.error(`ISO generation failed: ${isoId}`, {
+                    description: status.message || "There was a problem generating your ISO."
+                  });
+                }
+              }
+            }
+          } catch (error) {
+            console.warn(`Error checking ISO status for ${isoId}:`, error);
+          }
+        }
+      }
+      
+      if (hasChanges) {
+        setGeneratingIsos(newGeneratingIsos);
+      }
     } catch (error) {
       console.error("Error loading ISO metadata:", error);
       toast({
@@ -60,30 +110,139 @@ const IsoManager: React.FC<IsoManagerProps> = ({ currentBuildId, refreshTrigger 
   };
   
   const handleDownload = (iso: IsoMetadata) => {
-    // In a real application with a backend, we would have a real download endpoint
-    // For now, we'll simulate a download by creating a dummy file
-    toast({
-      title: "Simulated Download",
-      description: `In a production environment, this would download ${iso.isoName}`,
-    });
-    
-    // Create a blob with some text content to simulate the ISO file
-    const blob = new Blob([`This is a simulated ISO file: ${iso.isoName}\n
+    try {
+      if (iso.jobId) {
+        // If this ISO was created by the backend service
+        backendService.downloadIso(iso.jobId, iso.isoName);
+      } else {
+        // In a real application with a backend, we would have a real download endpoint
+        // For now, we'll simulate a download by creating a dummy file
+        toast({
+          title: "Simulated Download",
+          description: `In a production environment, this would download ${iso.isoName}`,
+        });
+        
+        // Create a blob with some text content to simulate the ISO file
+        const blob = new Blob([`This is a simulated ISO file: ${iso.isoName}\n
 Build ID: ${iso.buildId}\n
 Created: ${iso.timestamp}\n
 Configuration: ${iso.configName}\n
 This is just a simulation as we don't have a real server to generate actual ISO files.`], 
-    { type: 'text/plain' });
-    
-    // Create a download link and trigger it
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = iso.isoName;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+        { type: 'text/plain' });
+        
+        // Create a download link and trigger it
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = iso.isoName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      toast.error("Download failed", {
+        description: `Error downloading ISO: ${error}`
+      });
+    }
+  };
+  
+  const handleGenerateRealIso = async (iso: IsoMetadata) => {
+    try {
+      setGeneratingIsos(prev => ({
+        ...prev,
+        [iso.isoName]: {
+          status: "pending",
+          progress: 0,
+          message: "Initializing real ISO generation..."
+        }
+      }));
+      
+      toast.loading("Starting ISO generation", {
+        description: "Sending request to generate a real bootable ISO..."
+      });
+      
+      // Request ISO generation from the backend
+      const result = await backendService.requestIsoGeneration({
+        buildId: iso.buildId,
+        sourceDir: `/tmp/builds/${iso.buildId}/lfs`,
+        outputPath: `/tmp/iso/${iso.buildId}/${iso.isoName}`,
+        label: iso.label || "LFS",
+        bootable: iso.bootable,
+        bootloader: iso.bootloader || "grub"
+      });
+      
+      if (result.jobId) {
+        setGeneratingIsos(prev => ({
+          ...prev,
+          [iso.isoName]: {
+            status: "processing",
+            progress: 5,
+            message: "ISO generation in progress...",
+            jobId: result.jobId
+          }
+        }));
+        
+        toast.success("ISO generation started", {
+          description: `Job ID: ${result.jobId}`
+        });
+        
+        // Start polling for status
+        const intervalId = setInterval(async () => {
+          try {
+            const status = await backendService.checkIsoGenerationStatus(result.jobId);
+            
+            setGeneratingIsos(prev => ({
+              ...prev,
+              [iso.isoName]: {
+                status: status.status,
+                progress: status.progress || prev[iso.isoName].progress,
+                message: status.message,
+                jobId: result.jobId
+              }
+            }));
+            
+            if (status.status === "completed" || status.status === "failed") {
+              clearInterval(intervalId);
+              
+              if (status.status === "completed") {
+                toast.success("ISO generation completed", {
+                  description: "Your ISO is ready to download!"
+                });
+                
+                // Refresh the ISO list
+                loadIsoData();
+              } else if (status.status === "failed") {
+                toast.error("ISO generation failed", {
+                  description: status.message || "There was a problem generating your ISO."
+                });
+              }
+            }
+          } catch (error) {
+            console.error("Error checking ISO status:", error);
+            clearInterval(intervalId);
+          }
+        }, 3000);
+      } else {
+        toast.error("Failed to start ISO generation", {
+          description: "No job ID returned from the backend."
+        });
+      }
+    } catch (error) {
+      console.error("Error generating real ISO:", error);
+      toast.error("ISO generation failed", {
+        description: `Error: ${error}`
+      });
+      
+      setGeneratingIsos(prev => ({
+        ...prev,
+        [iso.isoName]: {
+          status: "failed",
+          progress: 0,
+          message: `Error: ${error}`
+        }
+      }));
+    }
   };
   
   // Helper to create placeholder data for browser demo
@@ -194,32 +353,71 @@ This is just a simulation as we don't have a real server to generate actual ISO 
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isoData.map((iso, i) => (
-                  <TableRow key={`${iso.buildId}-${iso.isoName}-${i}`}>
-                    <TableCell className="font-medium">{iso.isoName}</TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {iso.buildId.substring(0, 8)}...
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(iso.timestamp), "MMM d, yyyy HH:mm")}
-                    </TableCell>
-                    <TableCell>{iso.configName}</TableCell>
-                    <TableCell>
-                      <Badge variant={iso.bootable ? "default" : "outline"}>
-                        {iso.bootable ? `Bootable (${iso.bootloader})` : "Data only"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button 
-                        size="sm" 
-                        className="flex items-center gap-1"
-                        onClick={() => handleDownload(iso)}
-                      >
-                        <FileDown className="h-4 w-4" /> Download
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {isoData.map((iso, i) => {
+                  const isGenerating = generatingIsos[iso.isoName] !== undefined;
+                  const generationStatus = isGenerating ? generatingIsos[iso.isoName] : null;
+                  
+                  return (
+                    <TableRow key={`${iso.buildId}-${iso.isoName}-${i}`}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {iso.isoName}
+                          {generationStatus?.status === "completed" && (
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {iso.buildId.substring(0, 8)}...
+                      </TableCell>
+                      <TableCell>
+                        {format(new Date(iso.timestamp), "MMM d, yyyy HH:mm")}
+                      </TableCell>
+                      <TableCell>{iso.configName}</TableCell>
+                      <TableCell>
+                        <Badge variant={iso.bootable ? "default" : "outline"}>
+                          {iso.bootable ? `Bootable (${iso.bootloader})` : "Data only"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          {isGenerating && generationStatus?.status !== "completed" && (
+                            <div className="w-full max-w-[200px]">
+                              <Progress value={generationStatus?.progress || 0} className="h-2 mb-1" />
+                              <p className="text-xs text-gray-500">
+                                {generationStatus?.status === "failed" ? (
+                                  <span className="text-red-500 flex items-center gap-1">
+                                    <AlertCircle className="h-3 w-3" /> Failed
+                                  </span>
+                                ) : (
+                                  `${generationStatus?.status}: ${generationStatus?.progress || 0}%`
+                                )}
+                              </p>
+                            </div>
+                          )}
+                          
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="flex items-center gap-1"
+                            onClick={() => handleGenerateRealIso(iso)}
+                            disabled={isGenerating && generationStatus?.status !== "failed"}
+                          >
+                            Generate Real ISO
+                          </Button>
+                          
+                          <Button 
+                            size="sm" 
+                            className="flex items-center gap-1"
+                            onClick={() => handleDownload(iso)}
+                          >
+                            <FileDown className="h-4 w-4" /> Download
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
