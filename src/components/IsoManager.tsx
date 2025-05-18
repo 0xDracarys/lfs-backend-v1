@@ -98,10 +98,8 @@ const IsoManager: React.FC<IsoManagerProps> = ({ currentBuildId, refreshTrigger 
       }
     } catch (error) {
       console.error("Error loading ISO metadata:", error);
-      toast({
-        title: "Error Loading ISO Data",
-        description: "Failed to load ISO information. This may be due to running in a browser environment.",
-        variant: "destructive"
+      toast.error("Error Loading ISO Data", {
+        description: "Failed to load ISO information. This may be due to running in a browser environment."
       });
       
       // Set placeholder data for demonstration
@@ -121,9 +119,8 @@ const IsoManager: React.FC<IsoManagerProps> = ({ currentBuildId, refreshTrigger 
       } else {
         // In a real application with a backend, we would have a real download endpoint
         // For now, we'll simulate a download by creating a dummy file
-        toast({
-          title: "Simulated Download",
-          description: `In a production environment, this would download ${iso.isoName}`,
+        toast.info("Simulated Download", {
+          description: `In a production environment, this would download ${iso.isoName}`
         });
         
         // Create a blob with some text content to simulate the ISO file
@@ -145,10 +142,8 @@ This is just a simulation as we don't have a real server to generate actual ISO 
         document.body.removeChild(a);
       }
     } catch (error) {
-      toast({
-        title: "Download failed",
-        description: `Error downloading ISO: ${error}`,
-        variant: "destructive"
+      toast.error("Download failed", {
+        description: `Error downloading ISO: ${error}`
       });
     }
   };
@@ -164,8 +159,7 @@ This is just a simulation as we don't have a real server to generate actual ISO 
         }
       }));
       
-      toast({
-        title: "Starting ISO generation",
+      toast.info("Starting ISO generation", {
         description: "Sending request to generate a real bootable ISO..."
       });
       
@@ -176,7 +170,7 @@ This is just a simulation as we don't have a real server to generate actual ISO 
         outputPath: `/tmp/iso/${iso.buildId}/${iso.isoName}`,
         label: iso.label || "LFS",
         bootable: iso.bootable,
-        bootloader: iso.bootloader || "grub" as "grub" | "isolinux" | "none",
+        bootloader: (iso.bootloader as "grub" | "isolinux" | "none") || "grub",
       });
       
       if (result.jobId) {
@@ -231,18 +225,14 @@ This is just a simulation as we don't have a real server to generate actual ISO 
           }
         }, 3000);
       } else {
-        toast({
-          title: "Failed to start ISO generation",
-          description: "No job ID returned from the backend.",
-          variant: "destructive"
+        toast.error("Failed to start ISO generation", {
+          description: "No job ID returned from the backend."
         });
       }
     } catch (error) {
       console.error("Error generating real ISO:", error);
-      toast({
-        title: "ISO generation failed",
-        description: `Error: ${error}`,
-        variant: "destructive"
+      toast.error("ISO generation failed", {
+        description: `Error: ${error}`
       });
       
       setGeneratingIsos(prev => ({
