@@ -1,7 +1,6 @@
+
 import { IsoGenerationOptions } from "./types";
 import { DockerService, DockerIsoOptions } from "./docker-service";
-import { promises as fs } from 'fs';
-import path from 'path';
 
 // Constants for ISO storage
 const DEFAULT_ISO_DIR = "/tmp/iso";
@@ -27,6 +26,7 @@ export class IsoGenerator {
   private dockerService: DockerService;
   private useDocker: boolean = false;
   private storageDirectory: string = DEFAULT_ISO_DIR;
+  private metadataStore: IsoMetadata[] = [];
   
   constructor(storageDirectory?: string) {
     this.dockerService = new DockerService();
@@ -34,6 +34,51 @@ export class IsoGenerator {
     // Set custom storage directory if provided
     if (storageDirectory) {
       this.storageDirectory = storageDirectory;
+    }
+    
+    // Load existing metadata from localStorage in browser environment
+    this.loadMetadata();
+  }
+  
+  /**
+   * Load metadata from localStorage in browser environment
+   * or simulate loading from a file in Node.js environment
+   */
+  private loadMetadata(): void {
+    try {
+      // In browser environment, use localStorage
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const storedData = localStorage.getItem('iso_metadata');
+        if (storedData) {
+          this.metadataStore = JSON.parse(storedData);
+          console.log('Loaded ISO metadata from localStorage:', this.metadataStore.length, 'entries');
+        }
+      } else {
+        // In a non-browser environment, we'd load from file, but here we'll just simulate
+        console.log('Non-browser environment detected, using in-memory metadata store');
+      }
+    } catch (error) {
+      console.error('Error loading ISO metadata:', error);
+      this.metadataStore = [];
+    }
+  }
+  
+  /**
+   * Save metadata to localStorage in browser environment
+   * or simulate saving to a file in Node.js environment
+   */
+  private saveMetadataStore(): void {
+    try {
+      // In browser environment, use localStorage
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('iso_metadata', JSON.stringify(this.metadataStore));
+        console.log('Saved ISO metadata to localStorage:', this.metadataStore.length, 'entries');
+      } else {
+        // In a non-browser environment, we'd save to file, but here we'll just log
+        console.log('Non-browser environment detected, metadata would be saved to file');
+      }
+    } catch (error) {
+      console.error('Error saving ISO metadata:', error);
     }
   }
   
@@ -68,7 +113,7 @@ export class IsoGenerator {
     console.log(`Starting ISO generation with options:`, options);
     
     try {
-      // Ensure the output directory exists
+      // Ensure the output directory exists (simulated in browser)
       const outputDir = this.getDirectoryPath(options.outputPath);
       await this.ensureDirectoryExists(outputDir);
       
@@ -112,7 +157,7 @@ export class IsoGenerator {
       // Store ISO metadata for future access
       await this.saveIsoMetadata({
         buildId: options.buildId,
-        isoName: path.basename(options.outputPath),
+        isoName: this.getFileName(options.outputPath),
         timestamp: new Date().toISOString(),
         configName: options.label,
         outputPath: options.outputPath,
@@ -147,7 +192,7 @@ export class IsoGenerator {
       // Store ISO metadata for future access
       await this.saveIsoMetadata({
         buildId: options.buildId,
-        isoName: path.basename(options.outputPath),
+        isoName: this.getFileName(options.outputPath),
         timestamp: new Date().toISOString(),
         configName: options.label,
         outputPath: options.outputPath,
@@ -224,33 +269,18 @@ export class IsoGenerator {
    */
   private async saveIsoMetadata(metadata: IsoMetadata): Promise<void> {
     try {
-      // Ensure the metadata directory exists
-      await this.ensureDirectoryExists(this.storageDirectory);
-      
-      const metadataPath = path.join(this.storageDirectory, ISO_METADATA_FILE);
-      
-      // Read existing metadata if it exists
-      let existingMetadata: IsoMetadata[] = [];
-      try {
-        const data = await fs.readFile(metadataPath, 'utf8');
-        existingMetadata = JSON.parse(data);
-      } catch (error) {
-        // File doesn't exist or is invalid, start with empty array
-        existingMetadata = [];
-      }
-      
-      // Add new metadata to the list (or update existing)
-      const existingIndex = existingMetadata.findIndex(m => 
+      // Add new metadata to memory store
+      const existingIndex = this.metadataStore.findIndex(m => 
         m.buildId === metadata.buildId && m.isoName === metadata.isoName);
         
       if (existingIndex >= 0) {
-        existingMetadata[existingIndex] = metadata;
+        this.metadataStore[existingIndex] = metadata;
       } else {
-        existingMetadata.push(metadata);
+        this.metadataStore.push(metadata);
       }
       
-      // Write updated metadata back to file
-      await fs.writeFile(metadataPath, JSON.stringify(existingMetadata, null, 2), 'utf8');
+      // Save updated metadata store
+      this.saveMetadataStore();
       
       console.log(`Saved ISO metadata for ${metadata.isoName} (Build ID: ${metadata.buildId})`);
     } catch (error) {
@@ -263,28 +293,15 @@ export class IsoGenerator {
    * Get metadata for all saved ISOs
    */
   async getAllIsoMetadata(): Promise<IsoMetadata[]> {
-    try {
-      const metadataPath = path.join(this.storageDirectory, ISO_METADATA_FILE);
-      
-      try {
-        const data = await fs.readFile(metadataPath, 'utf8');
-        return JSON.parse(data);
-      } catch (error) {
-        // File doesn't exist or is invalid, return empty array
-        return [];
-      }
-    } catch (error) {
-      console.error(`Error reading ISO metadata:`, error);
-      return [];
-    }
+    // Return a copy of the metadata store
+    return [...this.metadataStore];
   }
 
   /**
    * Get metadata for a specific ISO by build ID
    */
   async getIsoMetadataByBuildId(buildId: string): Promise<IsoMetadata[]> {
-    const allMetadata = await this.getAllIsoMetadata();
-    return allMetadata.filter(m => m.buildId === buildId);
+    return this.metadataStore.filter(m => m.buildId === buildId);
   }
 
   /**
@@ -295,15 +312,19 @@ export class IsoGenerator {
   }
   
   /**
+   * Helper method to get filename from a file path
+   */
+  private getFileName(filePath: string): string {
+    return filePath.includes('/') ? filePath.substring(filePath.lastIndexOf('/') + 1) : filePath;
+  }
+  
+  /**
    * Ensure a directory exists, creating it if necessary
+   * In browser environment, this is a no-op
    */
   private async ensureDirectoryExists(directory: string): Promise<void> {
-    try {
-      await fs.mkdir(directory, { recursive: true });
-    } catch (error) {
-      // In a browser environment, fs operations will fail, so just log the error
-      console.warn(`Warning: Could not create directory ${directory}: ${error}`);
-    }
+    // In browser environment, just log intent
+    console.log(`Ensuring directory exists (simulated): ${directory}`);
   }
   
   /**
