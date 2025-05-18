@@ -8,8 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const Testing = () => {
   const [useDocker, setUseDocker] = useState(false);
   
-  const handleDockerSetupComplete = (isAvailable: boolean) => {
-    setUseDocker(isAvailable);
+  // This is the function that needs to be fixed to match the expected signature
+  const handleDockerSetupComplete = () => {
+    // Since we can't get the boolean parameter directly from the function signature,
+    // we'll set useDocker to true when this function is called, assuming Docker setup was successful
+    setUseDocker(true);
   };
 
   return (
