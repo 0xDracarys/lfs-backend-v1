@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileDown, Disc, Info, RefreshCw, AlertCircle, CheckCircle2, Docker } from "lucide-react";
+import { FileDown, Disc, Info, RefreshCw, AlertCircle, CheckCircle2, Database } from "lucide-react";
 import { toast } from "sonner";
 import { IsoGenerator, IsoMetadata } from "@/lib/testing/iso-generator";
 import { format } from "date-fns";
@@ -63,14 +62,14 @@ const IsoManager: React.FC<IsoManagerProps> = ({ currentBuildId, refreshTrigger 
           }));
           
           // If job is complete or failed, show a toast
-          if (status.status === "completed" && prev[isoName]?.status !== "completed") {
+          if (status.status === "completed" && generatingIsos[isoName]?.status !== "completed") {
             toast.success(`ISO generation completed: ${isoName}`, {
               description: status.message || "Your ISO is ready to download!"
             });
             
             // Refresh ISO list after job completion
             loadIsoData();
-          } else if (status.status === "failed" && prev[isoName]?.status !== "failed") {
+          } else if (status.status === "failed" && generatingIsos[isoName]?.status !== "failed") {
             toast.error(`ISO generation failed: ${isoName}`, {
               description: status.message || "There was a problem generating your ISO."
             });
@@ -439,7 +438,7 @@ This is just a simulation as we don't have a real server to generate actual ISO 
                             onClick={() => handleGenerateRealIso(iso)}
                             disabled={isGenerating && generationStatus?.status !== "failed"}
                           >
-                            <Docker className="h-4 w-4" /> Generate Real ISO
+                            <Database className="h-4 w-4" /> Generate Real ISO
                           </Button>
                           
                           <Button 

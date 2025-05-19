@@ -10,7 +10,7 @@ import { backendService } from "@/lib/testing/backend-service";
 import { DockerService } from "@/lib/testing/docker-service";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Disc, Download, ArrowRight, Server, Database, Docker, Activity } from "lucide-react";
+import { Disc, Download, ArrowRight, Server, Database, Cpu, Activity } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { toast } from "sonner";
 
@@ -92,7 +92,7 @@ const IsoManagementPage = () => {
               onClick={() => setShowDockerMonitor(!showDockerMonitor)}
               className="flex items-center gap-1"
             >
-              <Docker className="h-4 w-4" />
+              <Cpu className="h-4 w-4" />
               {showDockerMonitor ? "Hide Docker Monitor" : "Show Docker Monitor"}
             </Button>
             <Button variant="outline" onClick={handleRefresh}>
