@@ -1,4 +1,3 @@
-
 /**
  * Browser-compatible service for simulating Docker interactions
  * This service handles all Docker-related operations and provides a consistent interface
@@ -11,11 +10,38 @@ export class DockerService {
     running: boolean;
     containerId: string | null;
     startTime: Date | null;
+    progress: number;
+    logs: string[];
+    lastUpdated: Date | null;
   } = {
     running: false,
     containerId: null,
-    startTime: null
+    startTime: null,
+    progress: 0,
+    logs: [],
+    lastUpdated: null
   };
+  
+  // Event listeners for container status updates
+  private statusListeners: ((status: any) => void)[] = [];
+  
+  /**
+   * Register a listener for container status updates
+   */
+  onStatusUpdate(callback: (status: any) => void): () => void {
+    this.statusListeners.push(callback);
+    return () => {
+      this.statusListeners = this.statusListeners.filter(cb => cb !== callback);
+    };
+  }
+  
+  /**
+   * Notify all listeners of status changes
+   */
+  private notifyStatusUpdate(): void {
+    const status = this.getContainerStatus();
+    this.statusListeners.forEach(callback => callback(status));
+  }
   
   /**
    * Check if Docker is available on the system
@@ -145,13 +171,23 @@ export class DockerService {
       this.containerStatus = {
         running: true,
         containerId,
-        startTime: new Date()
+        startTime: new Date(),
+        progress: 0,
+        logs: [],
+        lastUpdated: new Date()
       };
+      
+      // Notify of container started
+      this.updateProgress(5, `Started container ${containerId}`);
+      this.notifyStatusUpdate();
       
       // Simulate the Docker process with a delay
       logs.push(`Running Docker container with ID: ${containerId}...`);
       logs.push(`Executing: docker run --name ${containerId} -v ${options.sourceDir}:/iso-build/input -v ${this.getDirectoryFromPath(options.outputPath)}:/iso-build/output ${this.imageName}`);
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Initial container setup 
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      this.updateProgress(10, 'Container started, preparing environment');
       
       // Simulate LFS build process if requested
       if (options.runLfsBuild) {
@@ -159,15 +195,18 @@ export class DockerService {
         await this.simulateLfsBuild(logs);
       }
       
-      // Simulate the ISO generation process
+      // Simulate the ISO generation process with progress updates
       await this.simulateIsoGenerationSteps(logs, options);
       
       // Update container status
       this.containerStatus.running = false;
+      this.updateProgress(100, 'ISO generation completed');
       
       // 10% chance of failure for realism
       if (Math.random() < 0.1) {
+        this.updateProgress(0, 'Error: ISO generation failed with exit code 1');
         logs.push('Error: ISO generation failed with exit code 1');
+        this.notifyStatusUpdate();
         return { success: false, logs };
       }
       
@@ -175,11 +214,14 @@ export class DockerService {
       logs.push(`Container stopped and removed`);
       logs.push(`ISO file created successfully at ${options.outputPath}`);
       
-      return { success: true, logs };
+      this.notifyStatusUpdate();
+      return { success: true, logs, output: options.outputPath };
     } catch (error) {
       logs.push(`Error running Docker container: ${error}`);
       // Update container status on error
       this.containerStatus.running = false;
+      this.updateProgress(0, `Error: ${error}`);
+      this.notifyStatusUpdate();
       return { success: false, logs };
     }
   }
@@ -194,6 +236,21 @@ export class DockerService {
   }
   
   /**
+   * Update the progress of the current container operation
+   * 
+   * @param progress - Progress percentage (0-100)
+   * @param logMessage - Log message to add
+   */
+  private updateProgress(progress: number, logMessage: string): void {
+    if (logMessage) {
+      this.containerStatus.logs.push(logMessage);
+    }
+    this.containerStatus.progress = progress;
+    this.containerStatus.lastUpdated = new Date();
+    this.notifyStatusUpdate();
+  }
+  
+  /**
    * Stop and remove the current running container
    * 
    * @returns Promise<boolean> - True if stopped successfully
@@ -204,12 +261,14 @@ export class DockerService {
     }
     
     console.log(`Stopping container ${this.containerStatus.containerId}...`);
+    this.updateProgress(this.containerStatus.progress, `Stopping container ${this.containerStatus.containerId}...`);
     
     // Simulate stopping container
     await new Promise(resolve => setTimeout(resolve, 500));
     
     // Update status
     this.containerStatus.running = false;
+    this.updateProgress(0, `Container ${this.containerStatus.containerId} stopped and removed`);
     console.log(`Container ${this.containerStatus.containerId} stopped and removed`);
     
     return true;
@@ -245,24 +304,56 @@ export class DockerService {
    */
   private async simulateIsoGenerationSteps(logs: string[], options: DockerIsoOptions): Promise<void> {
     logs.push('Starting ISO generation process in container');
+    this.updateProgress(15, 'Starting ISO generation process');
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
     logs.push('Creating ISO directory structure');
+    this.updateProgress(20, 'Creating ISO directory structure');
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
     logs.push('Copying LFS files to ISO image');
+    this.updateProgress(30, 'Copying LFS files to ISO image');
+    await new Promise(resolve => setTimeout(resolve, 1200));
     
     if (options.bootable) {
       logs.push(`Setting up ${options.bootloader} bootloader`);
+      this.updateProgress(40, `Setting up ${options.bootloader} bootloader`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       if (options.bootloader === 'grub') {
         logs.push('Installing GRUB bootloader files');
+        this.updateProgress(50, 'Installing GRUB bootloader files');
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
         logs.push('Creating GRUB configuration');
+        this.updateProgress(60, 'Creating GRUB configuration');
+        await new Promise(resolve => setTimeout(resolve, 600));
+        
         logs.push('Building El Torito boot image');
+        this.updateProgress(70, 'Building El Torito boot image');
+        await new Promise(resolve => setTimeout(resolve, 700));
       } else if (options.bootloader === 'isolinux') {
         logs.push('Installing ISOLINUX bootloader files');
+        this.updateProgress(50, 'Installing ISOLINUX bootloader files');
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
         logs.push('Creating ISOLINUX configuration');
+        this.updateProgress(60, 'Creating ISOLINUX configuration');
+        await new Promise(resolve => setTimeout(resolve, 700));
       }
     }
     
     logs.push('Running xorriso to create ISO image');
+    this.updateProgress(80, 'Running xorriso to create ISO image');
     await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    logs.push('Verifying ISO image integrity');
+    this.updateProgress(90, 'Verifying ISO image integrity');
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    logs.push('Calculating checksums');
+    this.updateProgress(95, 'Calculating checksums');
+    await new Promise(resolve => setTimeout(resolve, 600));
   }
   
   /**
@@ -272,18 +363,21 @@ export class DockerService {
    */
   private async simulateLfsBuild(logs: string[]): Promise<void> {
     logs.push('Setting up LFS build environment...');
+    this.updateProgress(10, 'Setting up LFS build environment');
     await new Promise(resolve => setTimeout(resolve, 800));
     
     logs.push('Building cross-toolchain...');
     for (let i = 1; i <= 5; i++) {
       await new Promise(resolve => setTimeout(resolve, 500));
       logs.push(`Cross-toolchain build progress: ${i * 20}%`);
+      this.updateProgress(10 + i * 2, `Building cross-toolchain: ${i * 20}%`);
     }
     
     logs.push('Building temporary tools...');
     for (let i = 1; i <= 3; i++) {
       await new Promise(resolve => setTimeout(resolve, 500));
       logs.push(`Temporary tools build progress: ${i * 33}%`);
+      this.updateProgress(20 + i * 3, `Building temporary tools: ${i * 33}%`);
     }
     
     logs.push('Entering chroot environment...');
@@ -293,6 +387,7 @@ export class DockerService {
     for (let i = 1; i <= 4; i++) {
       await new Promise(resolve => setTimeout(resolve, 700));
       logs.push(`LFS system build progress: ${i * 25}%`);
+      this.updateProgress(30 + i * 4, `Building base LFS system: ${i * 25}%`);
     }
     
     logs.push('Configuring base system...');
@@ -526,4 +621,5 @@ export interface DockerIsoOptions {
 export interface DockerExecutionResult {
   success: boolean;
   logs: string[];
+  output?: string;
 }

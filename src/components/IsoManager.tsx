@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileDown, Disc, Info, RefreshCw, AlertCircle, CheckCircle2 } from "lucide-react";
+import { FileDown, Disc, Info, RefreshCw, AlertCircle, CheckCircle2, Docker } from "lucide-react";
 import { toast } from "sonner";
 import { IsoGenerator, IsoMetadata } from "@/lib/testing/iso-generator";
 import { format } from "date-fns";
@@ -33,6 +34,56 @@ const IsoManager: React.FC<IsoManagerProps> = ({ currentBuildId, refreshTrigger 
     message?: string;
     jobId?: string;
   }>>({});
+  
+  // Set up polling interval for job status
+  useEffect(() => {
+    // Only set up polling if there are active jobs
+    const activeJobs = Object.entries(generatingIsos).filter(
+      ([_, job]) => job.status === "pending" || job.status === "processing"
+    );
+    
+    if (activeJobs.length === 0) return;
+    
+    // Set up polling interval
+    const intervalId = setInterval(() => {
+      activeJobs.forEach(async ([isoName, job]) => {
+        if (!job.jobId) return;
+        
+        try {
+          const status = await backendService.checkIsoGenerationStatus(job.jobId);
+          
+          setGeneratingIsos(prev => ({
+            ...prev,
+            [isoName]: {
+              ...prev[isoName],
+              status: status.status,
+              progress: status.progress || prev[isoName].progress,
+              message: status.message
+            }
+          }));
+          
+          // If job is complete or failed, show a toast
+          if (status.status === "completed" && prev[isoName]?.status !== "completed") {
+            toast.success(`ISO generation completed: ${isoName}`, {
+              description: status.message || "Your ISO is ready to download!"
+            });
+            
+            // Refresh ISO list after job completion
+            loadIsoData();
+          } else if (status.status === "failed" && prev[isoName]?.status !== "failed") {
+            toast.error(`ISO generation failed: ${isoName}`, {
+              description: status.message || "There was a problem generating your ISO."
+            });
+          }
+        } catch (error) {
+          console.warn(`Error checking ISO status for ${isoName}:`, error);
+        }
+      });
+    }, 3000);
+    
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId);
+  }, [generatingIsos]);
   
   useEffect(() => {
     loadIsoData();
@@ -188,42 +239,22 @@ This is just a simulation as we don't have a real server to generate actual ISO 
           description: `Job ID: ${result.jobId}`
         });
         
-        // Start polling for status
-        const intervalId = setInterval(async () => {
-          try {
-            const status = await backendService.checkIsoGenerationStatus(result.jobId);
-            
-            setGeneratingIsos(prev => ({
-              ...prev,
-              [iso.isoName]: {
-                status: status.status,
-                progress: status.progress || prev[iso.isoName].progress,
-                message: status.message,
-                jobId: result.jobId
-              }
-            }));
-            
-            if (status.status === "completed" || status.status === "failed") {
-              clearInterval(intervalId);
-              
-              if (status.status === "completed") {
-                toast.success("ISO generation completed", {
-                  description: "Your ISO is ready to download!"
-                });
-                
-                // Refresh the ISO list
-                loadIsoData();
-              } else if (status.status === "failed") {
-                toast.error("ISO generation failed", {
-                  description: status.message || "There was a problem generating your ISO."
-                });
-              }
+        // Initial status check
+        try {
+          const status = await backendService.checkIsoGenerationStatus(result.jobId);
+          
+          setGeneratingIsos(prev => ({
+            ...prev,
+            [iso.isoName]: {
+              status: status.status,
+              progress: status.progress || 5,
+              message: status.message || "ISO generation in progress...",
+              jobId: result.jobId
             }
-          } catch (error) {
-            console.error("Error checking ISO status:", error);
-            clearInterval(intervalId);
-          }
-        }, 3000);
+          }));
+        } catch (error) {
+          console.error("Error checking initial ISO status:", error);
+        }
       } else {
         toast.error("Failed to start ISO generation", {
           description: "No job ID returned from the backend."
@@ -384,14 +415,18 @@ This is just a simulation as we don't have a real server to generate actual ISO 
                         <div className="flex justify-end gap-2">
                           {isGenerating && generationStatus?.status !== "completed" && (
                             <div className="w-full max-w-[200px]">
+                              <div className="flex justify-between text-xs text-gray-500 mb-1">
+                                <span>{generationStatus?.status}</span>
+                                <span>{generationStatus?.progress || 0}%</span>
+                              </div>
                               <Progress value={generationStatus?.progress || 0} className="h-2 mb-1" />
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-gray-500 truncate">
                                 {generationStatus?.status === "failed" ? (
                                   <span className="text-red-500 flex items-center gap-1">
-                                    <AlertCircle className="h-3 w-3" /> Failed
+                                    <AlertCircle className="h-3 w-3" /> {generationStatus?.message || "Failed"}
                                   </span>
                                 ) : (
-                                  `${generationStatus?.status}: ${generationStatus?.progress || 0}%`
+                                  generationStatus?.message || "Processing..."
                                 )}
                               </p>
                             </div>
@@ -404,7 +439,7 @@ This is just a simulation as we don't have a real server to generate actual ISO 
                             onClick={() => handleGenerateRealIso(iso)}
                             disabled={isGenerating && generationStatus?.status !== "failed"}
                           >
-                            Generate Real ISO
+                            <Docker className="h-4 w-4" /> Generate Real ISO
                           </Button>
                           
                           <Button 

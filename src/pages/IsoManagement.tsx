@@ -1,13 +1,16 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import MainNavigation from "../components/MainNavigation";
 import IsoManager from "../components/IsoManager";
+import DockerMonitor from "../components/DockerMonitor";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { backendService } from "@/lib/testing/backend-service";
+import { DockerService } from "@/lib/testing/docker-service";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Disc, Download, ArrowRight, Server } from "lucide-react";
+import { Disc, Download, ArrowRight, Server, Database, Docker, Activity } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { toast } from "sonner";
 
@@ -19,7 +22,25 @@ const IsoManagementPage = () => {
   const [isConfiguring, setIsConfiguring] = useState<boolean>(false);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [showDockerMonitor, setShowDockerMonitor] = useState<boolean>(false);
+  const [dockerAvailable, setDockerAvailable] = useState<boolean | null>(null);
+  const [dockerService] = useState<DockerService>(() => new DockerService());
   const { toast: uiToast } = useToast();
+  
+  // Check Docker availability on component mount
+  useEffect(() => {
+    const checkDocker = async () => {
+      try {
+        const available = await dockerService.checkDockerAvailability();
+        setDockerAvailable(available);
+      } catch (error) {
+        console.error("Error checking Docker availability:", error);
+        setDockerAvailable(false);
+      }
+    };
+    
+    checkDocker();
+  }, [dockerService]);
   
   const handleRefresh = () => {
     setIsoRefreshTrigger(prev => prev + 1);
@@ -66,6 +87,14 @@ const IsoManagementPage = () => {
           </div>
           
           <div className="flex gap-2 mt-4 md:mt-0">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowDockerMonitor(!showDockerMonitor)}
+              className="flex items-center gap-1"
+            >
+              <Docker className="h-4 w-4" />
+              {showDockerMonitor ? "Hide Docker Monitor" : "Show Docker Monitor"}
+            </Button>
             <Button variant="outline" onClick={handleRefresh}>
               Refresh
             </Button>
@@ -74,6 +103,12 @@ const IsoManagementPage = () => {
             </Button>
           </div>
         </div>
+        
+        {showDockerMonitor && (
+          <div className="mb-6">
+            <DockerMonitor dockerService={dockerService} />
+          </div>
+        )}
         
         {isConfiguring && (
           <Card className="mb-6">
@@ -107,14 +142,41 @@ const IsoManagementPage = () => {
                   </div>
                 </div>
                 
-                <div className="bg-gray-50 p-3 rounded-md text-sm">
-                  <p className="font-medium mb-1">Backend Service Requirements:</p>
-                  <ul className="list-disc list-inside text-gray-600 space-y-1">
-                    <li>Node.js server with Docker support</li>
-                    <li>API endpoints for ISO generation</li>
-                    <li>Secure connection between frontend and backend</li>
-                    <li>Access to Docker daemon for container management</li>
-                  </ul>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="bg-gray-50 p-3 rounded-md text-sm">
+                    <p className="font-medium mb-1">Backend Service Requirements:</p>
+                    <ul className="list-disc list-inside text-gray-600 space-y-1">
+                      <li>Node.js server with Docker support</li>
+                      <li>API endpoints for ISO generation</li>
+                      <li>Secure connection between frontend and backend</li>
+                      <li>Access to Docker daemon for container management</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-gray-50 p-3 rounded-md text-sm">
+                    <p className="font-medium mb-1">Docker Status:</p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className={`h-2 w-2 rounded-full ${
+                        dockerAvailable === null 
+                          ? "bg-gray-300" 
+                          : dockerAvailable 
+                            ? "bg-green-500" 
+                            : "bg-red-500"
+                      }`}></div>
+                      <span>
+                        {dockerAvailable === null 
+                          ? "Checking availability..." 
+                          : dockerAvailable 
+                            ? "Docker is available" 
+                            : "Docker is not available"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {dockerAvailable 
+                        ? "You can generate real ISOs locally using Docker" 
+                        : "Install Docker to generate real ISOs locally"}
+                    </p>
+                  </div>
                 </div>
                 
                 {isConnected && (
@@ -183,13 +245,53 @@ const IsoManagementPage = () => {
           <TabsContent value="real-isos">
             <Card>
               <CardHeader>
-                <CardTitle>Real ISO Images</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5" />
+                  Real ISO Images
+                </CardTitle>
                 <CardDescription>
                   ISO images generated by the backend service with Docker
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p>This tab will show only real ISO images generated using Docker and the backend service.</p>
+                <div className="space-y-3">
+                  <p>Real ISO images are generated using Docker containers. The process includes:</p>
+                  
+                  <ol className="list-decimal list-inside space-y-2 pl-4">
+                    <li className="text-gray-700">
+                      <span className="font-medium">Container Creation</span> - A Docker container is created with all necessary tools
+                    </li>
+                    <li className="text-gray-700">
+                      <span className="font-medium">LFS Files Preparation</span> - Your LFS build files are copied to the container
+                    </li>
+                    <li className="text-gray-700">
+                      <span className="font-medium">Bootloader Configuration</span> - GRUB or ISOLINUX bootloader is set up
+                    </li>
+                    <li className="text-gray-700">
+                      <span className="font-medium">ISO Creation</span> - The xorriso tool creates a bootable ISO image
+                    </li>
+                    <li className="text-gray-700">
+                      <span className="font-medium">Verification</span> - The ISO is verified for integrity
+                    </li>
+                  </ol>
+                  
+                  <div className="bg-gray-50 p-3 rounded-md mt-4">
+                    <p className="font-medium text-sm">Docker Container Details:</p>
+                    <p className="text-xs text-gray-600 mt-1">
+                      ISO generation runs in a containerized environment based on Ubuntu 22.04 with 
+                      all the necessary tools like xorriso, grub, and other utilities. This ensures
+                      consistent ISO generation regardless of your host system.
+                    </p>
+                    <Button 
+                      variant="link" 
+                      className="text-xs p-0 h-auto mt-2" 
+                      onClick={() => setShowDockerMonitor(true)}
+                    >
+                      <Activity className="h-3 w-3 mr-1" />
+                      Show Docker Monitor
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
