@@ -1,3 +1,4 @@
+
 export interface IsoGenerationOptions {
   sourceDir: string;
   outputPath: string;
@@ -17,6 +18,8 @@ export interface IsoGenerationConfig {
   iso_name?: string;
   bootable?: boolean;
   bootloader?: "grub" | "isolinux" | "none";
+  use_docker?: boolean;
+  lfs_build?: boolean;
 }
 
 export interface LFSTestConfiguration {
@@ -27,10 +30,15 @@ export interface LFSTestConfiguration {
   scripts_path: string;
   iso_generation: IsoGenerationConfig;
   expected_outcomes: ExpectedOutcomes;
+  docker_enabled?: boolean;
 }
 
 export interface TestConfig {
   logLevel: "info" | "debug" | "warn" | "error";
+  docker?: {
+    enabled: boolean;
+    image: string;
+  };
 }
 
 export enum BuildStatus {
@@ -55,6 +63,8 @@ export interface TestRunResult {
   };
   isoGenerated?: boolean;
   isoDownloadUrl?: string;
+  dockerContainerId?: string;
+  dockerStatus?: "not_used" | "running" | "completed" | "failed";
 }
 
 // Interface for ISO metadata
@@ -68,6 +78,7 @@ export interface IsoMetadata {
   bootloader: string;
   label?: string;
   jobId?: string;
+  dockerGenerated?: boolean;
 }
 
 // Define docker service specific types
@@ -77,6 +88,7 @@ export interface DockerIsoOptions {
   volumeLabel: string;
   bootable: boolean;
   bootloader: "grub" | "isolinux" | "none";
+  runLfsBuild?: boolean;
 }
 
 export interface DockerResult {

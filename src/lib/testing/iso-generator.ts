@@ -104,6 +104,18 @@ export class IsoGenerator {
   }
   
   /**
+   * Build the Docker image for ISO generation
+   */
+  async buildDockerImage(forceBuild: boolean = false): Promise<boolean> {
+    if (!this.useDocker) {
+      console.log("Docker usage is not enabled, skipping image build");
+      return false;
+    }
+    
+    return this.dockerService.buildDockerImage(forceBuild);
+  }
+  
+  /**
    * Generate an ISO image from a completed LFS build
    * 
    * @param options Configuration options for the ISO generation
@@ -121,7 +133,13 @@ export class IsoGenerator {
       if (this.useDocker) {
         const dockerAvailable = await this.dockerService.checkDockerAvailability();
         if (dockerAvailable) {
-          return this.generateIsoWithDocker(options);
+          // Ensure Docker image is built
+          const imageBuilt = await this.buildDockerImage();
+          if (!imageBuilt) {
+            console.warn("Failed to build Docker image, falling back to simulation mode");
+          } else {
+            return this.generateIsoWithDocker(options);
+          }
         } else {
           console.log("Docker is not available, falling back to simulation mode");
         }
@@ -148,6 +166,12 @@ export class IsoGenerator {
       bootloader: options.bootloader,
       bootable: options.bootable
     };
+    
+    // Add ability to run full LFS build if requested
+    if (options.buildId.includes('lfs-build')) {
+      console.log("Running full LFS build in Docker container before ISO generation");
+      dockerOptions.runLfsBuild = true;
+    }
     
     const result = await this.dockerService.runIsoGeneration(dockerOptions);
     

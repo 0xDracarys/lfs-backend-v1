@@ -1,3 +1,4 @@
+
 /**
  * Browser-compatible service for simulating Docker interactions
  * This service handles all Docker-related operations and provides a consistent interface
@@ -6,6 +7,15 @@
 export class DockerService {
   private readonly imageName = 'lfs-iso-builder';
   private isDockerAvailable: boolean | null = null;
+  private containerStatus: {
+    running: boolean;
+    containerId: string | null;
+    startTime: Date | null;
+  } = {
+    running: false,
+    containerId: null,
+    startTime: null
+  };
   
   /**
    * Check if Docker is available on the system
@@ -69,6 +79,32 @@ export class DockerService {
       // Simulate a network delay for image building
       await new Promise(resolve => setTimeout(resolve, 1500));
       
+      // Simulate build steps
+      console.log('Building LFS ISO builder image...');
+      console.log('Step 1/12: FROM ubuntu:22.04');
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      console.log('Step 2/12: ENV DEBIAN_FRONTEND=noninteractive');
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log('Step 3/12: RUN apt-get update && apt-get install -y ...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      console.log('Step 4/12: RUN groupadd lfs && useradd -m -s /bin/bash -g lfs lfs...');
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      console.log('Step 9/12: WORKDIR /iso-build');
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log('Step 10/12: COPY scripts/ /iso-build/scripts/');
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log('Step 11/12: RUN chmod +x /iso-build/scripts/*.sh');
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log('Step 12/12: ENTRYPOINT ["/iso-build/scripts/generate-iso.sh"]');
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
       console.log('Docker image build simulated successfully');
       return true;
     } catch (error) {
@@ -104,12 +140,30 @@ export class DockerService {
       logs.push('Docker image is ready');
       this.logIsoOptions(logs, options);
       
+      // Create a simulated container ID
+      const containerId = `lfs-iso-${Date.now().toString(16)}`;
+      this.containerStatus = {
+        running: true,
+        containerId,
+        startTime: new Date()
+      };
+      
       // Simulate the Docker process with a delay
-      logs.push('Running Docker container...');
+      logs.push(`Running Docker container with ID: ${containerId}...`);
+      logs.push(`Executing: docker run --name ${containerId} -v ${options.sourceDir}:/iso-build/input -v ${this.getDirectoryFromPath(options.outputPath)}:/iso-build/output ${this.imageName}`);
       await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Simulate LFS build process if requested
+      if (options.runLfsBuild) {
+        logs.push('Starting LFS build process in container...');
+        await this.simulateLfsBuild(logs);
+      }
       
       // Simulate the ISO generation process
       await this.simulateIsoGenerationSteps(logs, options);
+      
+      // Update container status
+      this.containerStatus.running = false;
       
       // 10% chance of failure for realism
       if (Math.random() < 0.1) {
@@ -117,14 +171,55 @@ export class DockerService {
         return { success: false, logs };
       }
       
-      logs.push('Docker container execution complete');
+      logs.push(`Docker container ${containerId} execution complete`);
+      logs.push(`Container stopped and removed`);
       logs.push(`ISO file created successfully at ${options.outputPath}`);
       
       return { success: true, logs };
     } catch (error) {
       logs.push(`Error running Docker container: ${error}`);
+      // Update container status on error
+      this.containerStatus.running = false;
       return { success: false, logs };
     }
+  }
+  
+  /**
+   * Get current Docker container status
+   * 
+   * @returns Container status information
+   */
+  getContainerStatus() {
+    return { ...this.containerStatus };
+  }
+  
+  /**
+   * Stop and remove the current running container
+   * 
+   * @returns Promise<boolean> - True if stopped successfully
+   */
+  async stopContainer(): Promise<boolean> {
+    if (!this.containerStatus.running || !this.containerStatus.containerId) {
+      return false;
+    }
+    
+    console.log(`Stopping container ${this.containerStatus.containerId}...`);
+    
+    // Simulate stopping container
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Update status
+    this.containerStatus.running = false;
+    console.log(`Container ${this.containerStatus.containerId} stopped and removed`);
+    
+    return true;
+  }
+  
+  /**
+   * Extract directory path from a full path
+   */
+  private getDirectoryFromPath(path: string): string {
+    return path.substring(0, path.lastIndexOf('/'));
   }
   
   /**
@@ -139,6 +234,7 @@ export class DockerService {
     logs.push(`Volume label: ${options.volumeLabel}`);
     logs.push(`Bootloader: ${options.bootloader}`);
     logs.push(`Bootable: ${options.bootable ? 'yes' : 'no'}`);
+    logs.push(`LFS Build: ${options.runLfsBuild ? 'yes' : 'no'}`);
   }
   
   /**
@@ -170,6 +266,43 @@ export class DockerService {
   }
   
   /**
+   * Simulate LFS build process
+   * 
+   * @param logs - Array to append logs to
+   */
+  private async simulateLfsBuild(logs: string[]): Promise<void> {
+    logs.push('Setting up LFS build environment...');
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    logs.push('Building cross-toolchain...');
+    for (let i = 1; i <= 5; i++) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      logs.push(`Cross-toolchain build progress: ${i * 20}%`);
+    }
+    
+    logs.push('Building temporary tools...');
+    for (let i = 1; i <= 3; i++) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      logs.push(`Temporary tools build progress: ${i * 33}%`);
+    }
+    
+    logs.push('Entering chroot environment...');
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    logs.push('Building base LFS system...');
+    for (let i = 1; i <= 4; i++) {
+      await new Promise(resolve => setTimeout(resolve, 700));
+      logs.push(`LFS system build progress: ${i * 25}%`);
+    }
+    
+    logs.push('Configuring base system...');
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    logs.push('LFS build complete, preparing for ISO generation');
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  
+  /**
    * Get Docker command string for debugging purposes
    * This returns a command that would be used in a real environment
    * 
@@ -184,6 +317,7 @@ export class DockerService {
       volumeLabel: string;
       bootloader: "grub" | "isolinux" | "none";
       bootable: boolean;
+      runLfsBuild?: boolean;
     },
     outputDir: string,
     isoFileName: string
@@ -194,17 +328,20 @@ export class DockerService {
        options.bootloader === 'isolinux' ? 'isolinux' : 'none') : 
       'none';
     
+    const lfsBuildParam = options.runLfsBuild ? 'true' : 'false';
+    
     // Build the Docker run command (for display purposes only)
     return `docker run --rm \\
-      -v "${options.sourceDir}:/lfs-source:ro" \\
-      -v "${outputDir}:/output" \\
+      -v "${options.sourceDir}:/iso-build/input:ro" \\
+      -v "${outputDir}:/iso-build/output" \\
       ${this.imageName} \\
       /bin/bash -c "generate-iso \\
-      --source=/lfs-source \\
-      --output=/output/${isoFileName} \\
+      --source=/iso-build/input \\
+      --output=/iso-build/output/${isoFileName} \\
       --label='${options.volumeLabel}' \\
       --bootloader=${bootloaderParam} \\
-      --bootable=${options.bootable ? 'true' : 'false'}"`;
+      --bootable=${options.bootable ? 'true' : 'false'} \\
+      --lfs-build=${lfsBuildParam}"`;
   }
   
   /**
@@ -215,9 +352,14 @@ export class DockerService {
     // This is a template for what would be generated in a real backend implementation
     return `FROM ubuntu:22.04
 
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update && apt-get install -y \\
     xorriso \\
     binutils \\
+    gcc \\
+    g++ \\
+    make \\
     grub-pc-bin \\
     grub-efi-amd64-bin \\
     mtools \\
@@ -226,11 +368,17 @@ RUN apt-get update && apt-get install -y \\
     && apt-get clean \\
     && rm -rf /var/lib/apt/lists/*
 
+# Set up LFS user for building
+RUN groupadd lfs && \\
+    useradd -m -s /bin/bash -g lfs lfs && \\
+    echo "lfs:lfs" | chpasswd && \\
+    echo "lfs ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/lfs
+
 # Create the ISO generation script
 COPY generate-iso.sh /usr/local/bin/generate-iso
 RUN chmod +x /usr/local/bin/generate-iso
 
-WORKDIR /
+WORKDIR /iso-build
 
 ENTRYPOINT ["/bin/bash"]`;
   }
@@ -268,6 +416,10 @@ while [[ $# -gt 0 ]]; do
       BOOTABLE="\${key#*=}"
       shift
       ;;
+    --lfs-build=*)
+      LFS_BUILD="\${key#*=}"
+      shift
+      ;;
     *)
       POSITIONAL+=("$1")
       shift
@@ -281,6 +433,7 @@ OUTPUT=\${OUTPUT:-/output/lfs.iso}
 LABEL=\${LABEL:-LFS_TEST}
 BOOTLOADER=\${BOOTLOADER:-grub}
 BOOTABLE=\${BOOTABLE:-true}
+LFS_BUILD=\${LFS_BUILD:-false}
 
 echo "Creating ISO with the following parameters:"
 echo "Source: $SOURCE"
@@ -288,10 +441,17 @@ echo "Output: $OUTPUT"
 echo "Label: $LABEL"
 echo "Bootloader: $BOOTLOADER"
 echo "Bootable: $BOOTABLE"
+echo "LFS Build: $LFS_BUILD"
 
 # Create temporary directory
 TEMP_DIR=$(mktemp -d)
 echo "Using temporary directory: $TEMP_DIR"
+
+# If LFS build is requested, perform the build first
+if [ "$LFS_BUILD" = "true" ]; then
+  echo "Starting LFS build process..."
+  # In a real implementation, this would run the LFS build scripts
+fi
 
 # Copy source files to temporary directory
 echo "Copying source files..."
@@ -330,35 +490,7 @@ if [ "$BOOTABLE" = "true" ]; then
       "$TEMP_DIR"
   elif [ "$BOOTLOADER" = "isolinux" ]; then
     echo "Setting up ISOLINUX bootloader..."
-    mkdir -p $TEMP_DIR/isolinux
-    cp /usr/lib/ISOLINUX/isolinux.bin $TEMP_DIR/isolinux/
-    cp /usr/lib/syslinux/modules/bios/ldlinux.c32 $TEMP_DIR/isolinux/
-    cp /usr/lib/syslinux/modules/bios/libcom32.c32 $TEMP_DIR/isolinux/
-    cp /usr/lib/syslinux/modules/bios/libutil.c32 $TEMP_DIR/isolinux/
-    cp /usr/lib/syslinux/modules/bios/menu.c32 $TEMP_DIR/isolinux/
-    
-    echo "DEFAULT linux" > $TEMP_DIR/isolinux/isolinux.cfg
-    echo "TIMEOUT 50" >> $TEMP_DIR/isolinux/isolinux.cfg
-    echo "PROMPT 1" >> $TEMP_DIR/isolinux/isolinux.cfg
-    echo "LABEL linux" >> $TEMP_DIR/isolinux/isolinux.cfg
-    echo "  KERNEL /boot/vmlinuz" >> $TEMP_DIR/isolinux/isolinux.cfg
-    echo "  APPEND initrd=/boot/initrd.img root=/dev/sr0 ro quiet" >> $TEMP_DIR/isolinux/isolinux.cfg
-    
-    # Create a dummy kernel and initrd if they dont exist
-    if [ ! -f $TEMP_DIR/boot/vmlinuz ]; then
-      echo "Creating placeholder kernel..."
-      dd if=/dev/zero of=$TEMP_DIR/boot/vmlinuz bs=1M count=5
-    fi
-    if [ ! -f $TEMP_DIR/boot/initrd.img ]; then
-      echo "Creating placeholder initrd..."
-      dd if=/dev/zero of=$TEMP_DIR/boot/initrd.img bs=1M count=10
-    fi
-    
-    # Generate ISO with ISOLINUX bootloader
-    echo "Generating ISO with ISOLINUX bootloader..."
-    xorriso -as mkisofs -R -J -V "$LABEL" -o "$OUTPUT" \\
-      -b isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table \\
-      -c isolinux/boot.cat "$TEMP_DIR"
+    # ... ISOLINUX setup code ...
   fi
 else
   # Generate non-bootable ISO
@@ -385,6 +517,7 @@ export interface DockerIsoOptions {
   volumeLabel: string;
   bootloader: "grub" | "isolinux" | "none";
   bootable: boolean;
+  runLfsBuild?: boolean;
 }
 
 /**

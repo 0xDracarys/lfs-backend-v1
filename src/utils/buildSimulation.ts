@@ -36,6 +36,57 @@ export const simulatePartitionDisk = async (appendToLog: (message: string) => vo
   appendToLog("Partition process completed successfully");
 };
 
+// Simulate Docker container operation for LFS building
+export const simulateDockerBuild = async (
+  appendToLog: (message: string) => void,
+  buildStep: BuildStepType
+) => {
+  const containerName = `lfs-build-${Date.now()}`;
+  
+  appendToLog(`Starting Docker container ${containerName} for LFS build...`);
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  appendToLog("Mounting volumes for source and output...");
+  appendToLog("$ docker run --name " + containerName + " -v ./lfs-sources:/iso-build/input -v ./output:/iso-build/output lfs-iso-builder");
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  appendToLog("Container started successfully");
+  appendToLog("Executing build step: " + buildStep.name);
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  
+  // Show different output based on step type
+  if (buildStep.id.includes('partition')) {
+    appendToLog("Setting up disk partitions in container...");
+    await simulatePartitionDisk(appendToLog);
+  } else if (buildStep.id.includes('build')) {
+    appendToLog("Building LFS packages...");
+    for (let i = 1; i <= 5; i++) {
+      await new Promise(resolve => setTimeout(resolve, 800));
+      appendToLog(`Building package ${i} of 5...`);
+    }
+    appendToLog("Package build completed successfully");
+  } else if (buildStep.id.includes('iso')) {
+    appendToLog("Generating ISO image in Docker container...");
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    appendToLog("Creating ISO structure...");
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    appendToLog("Adding bootloader...");
+    await new Promise(resolve => setTimeout(resolve, 800));
+    appendToLog("Finalizing ISO image...");
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    appendToLog("ISO generated successfully: lfs-custom.iso");
+    appendToLog("ISO is available in the output directory");
+  } else {
+    // Generic simulation for other steps
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    appendToLog("Command executed successfully in Docker container");
+  }
+  
+  appendToLog(`Stopping Docker container ${containerName}...`);
+  await new Promise(resolve => setTimeout(resolve, 500));
+  appendToLog(`Container ${containerName} stopped and removed`);
+};
+
 // Simulate script execution with progress updates
 export const simulateScriptExecution = async (
   step: BuildStepType, 
@@ -130,6 +181,8 @@ export const runBuildStep = async (
     // For demonstration, we'll show simulated output for some steps
     if (step.id === 'partition-disk') {
       await simulatePartitionDisk(appendToLog);
+    } else if (step.id.includes('docker-build')) {
+      await simulateDockerBuild(appendToLog, step);
     } else if (step.id.includes('script')) {
       await simulateScriptExecution(step, appendToScriptOutput);
     } else {
