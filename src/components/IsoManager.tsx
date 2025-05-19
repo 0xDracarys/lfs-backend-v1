@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Disc, Info, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { IsoGenerator, IsoMetadata } from "@/lib/testing/iso-generator";
-import { backendService } from "@/lib/testing/backend-service";
+import { backendService } from "@/lib/testing/services/backend-service";
 import { createPlaceholderData } from "./iso-management/utils/iso-utils";
 import IsoLoading from "./iso-management/IsoLoading";
 import EmptyIsoState from "./iso-management/EmptyIsoState";

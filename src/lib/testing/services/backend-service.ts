@@ -1,69 +1,43 @@
 
-import { IsoGenerationOptions } from "./types";
-import { DockerService } from "./docker-service";
+import { IsoGenerationOptions } from "../types";
+import { DockerService } from "../docker-service";
 import { toast } from "sonner";
-
-// Configuration for the backend service
-const BACKEND_CONFIG = {
-  apiUrl: import.meta.env.VITE_ISO_BACKEND_URL || "http://localhost:3000",
-  endpoints: {
-    generateIso: "/api/iso/generate",
-    status: "/api/iso/status",
-    download: "/api/iso/download"
-  },
-  timeout: 300000 // 5 minutes timeout
-};
+import { BACKEND_CONFIG } from "../config/backend-config";
+import { JobTracker } from "./job-tracker";
+import { ApiClient } from "./api-client";
+import { IsoGenerationStatus } from "../types/backend-types";
 
 /**
  * Backend service for real ISO generation
  * This service communicates with the Node.js backend server
  */
 export class BackendService {
-  private apiUrl: string;
+  private apiClient: ApiClient;
   private dockerService: DockerService;
-  private generationJobs: Record<string, {
-    jobId: string;
-    buildId: string;
-    status: "pending" | "processing" | "completed" | "failed";
-    progress: number;
-    containerId?: string;
-    startTime: Date;
-    message?: string;
-    isDocker: boolean;
-  }> = {};
+  private jobTracker: JobTracker;
   
   constructor(apiUrl?: string) {
-    this.apiUrl = apiUrl || BACKEND_CONFIG.apiUrl;
+    const config = { ...BACKEND_CONFIG };
+    if (apiUrl) {
+      config.apiUrl = apiUrl;
+    }
+    
+    this.apiClient = new ApiClient(config);
     this.dockerService = new DockerService();
+    this.jobTracker = new JobTracker();
     
     // Listen for Docker container status updates
     this.dockerService.onStatusUpdate(this.handleDockerStatusUpdate);
     
     // Check if API is available on init
-    this.checkApiAvailability();
+    this.apiClient.checkApiAvailability();
   }
   
   /**
    * Check if the backend API is available
    */
   async checkApiAvailability(): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.apiUrl}/health`, { 
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      if (response.ok) {
-        console.log("Backend API is available");
-        return true;
-      }
-      
-      console.warn("Backend API is not available:", response.statusText);
-      return false;
-    } catch (error) {
-      console.warn("Backend API is not available:", error);
-      return false;
-    }
+    return this.apiClient.checkApiAvailability();
   }
   
   /**
@@ -71,21 +45,24 @@ export class BackendService {
    */
   private handleDockerStatusUpdate = (containerStatus: any) => {
     // Find the job that corresponds to this container
-    const jobEntries = Object.entries(this.generationJobs);
+    const jobs = this.jobTracker.getAllJobs();
+    const jobEntries = Object.entries(jobs);
+    
     for (const [jobId, job] of jobEntries) {
       if (job.isDocker && job.containerId === containerStatus.containerId) {
         // Update job status based on container status
-        this.generationJobs[jobId] = {
-          ...job,
+        this.jobTracker.updateJob(jobId, {
           status: containerStatus.running ? "processing" : (containerStatus.progress >= 100 ? "completed" : "failed"),
           progress: containerStatus.progress,
           message: containerStatus.logs[containerStatus.logs.length - 1] || job.message
-        };
+        });
         
         // If container is no longer running and job isn't marked as completed, mark as failed
         if (!containerStatus.running && job.status !== "completed" && containerStatus.progress < 100) {
-          this.generationJobs[jobId].status = "failed";
-          this.generationJobs[jobId].message = "Container stopped unexpectedly";
+          this.jobTracker.updateJob(jobId, {
+            status: "failed",
+            message: "Container stopped unexpectedly"
+          });
         }
         
         break;
@@ -95,9 +72,6 @@ export class BackendService {
   
   /**
    * Send a request to generate a real ISO file
-   * 
-   * @param options ISO generation options
-   * @returns A job ID for tracking the generation process
    */
   async requestIsoGeneration(options: IsoGenerationOptions): Promise<{ jobId: string; status: string }> {
     try {
@@ -109,48 +83,13 @@ export class BackendService {
         console.log("Local Docker is available as a fallback");
       }
       
-      // Prepare request data
-      const requestData = {
-        buildId: options.buildId,
-        label: options.label,
-        bootable: options.bootable,
-        bootloader: options.bootloader,
-        // In a real implementation, we'd need to transfer source files
-        // Here we're assuming the backend has access to the buildId directory
-        sourceDir: options.sourceDir
-      };
-      
       // Try to send request to backend
       try {
         // Send request to backend
-        const response = await fetch(`${this.apiUrl}${BACKEND_CONFIG.endpoints.generateIso}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestData),
-          signal: AbortSignal.timeout(10000) // 10 second timeout for initial request
-        });
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Backend error: ${response.status} ${errorText}`);
-        }
-        
-        const result = await response.json();
-        
-        if (!result.jobId) {
-          throw new Error("Invalid response from backend, no job ID returned");
-        }
+        const result = await this.apiClient.requestIsoGeneration(options);
         
         // Store job information
-        this.generationJobs[result.jobId] = {
-          jobId: result.jobId,
-          buildId: options.buildId,
-          status: "pending",
-          progress: 0,
-          startTime: new Date(),
-          message: "Submitted to backend server",
-          isDocker: false
-        };
+        this.jobTracker.addJob(result.jobId, options.buildId, false);
         
         return result;
       } catch (error) {
@@ -189,7 +128,6 @@ export class BackendService {
   
   /**
    * Generate ISO locally using Docker as a fallback
-   * This is used when the backend API is not available
    */
   private async generateLocalIso(options: IsoGenerationOptions): Promise<{
     jobId: string;
@@ -205,22 +143,15 @@ export class BackendService {
       const containerStatus = this.dockerService.getContainerStatus();
       
       // Initialize job status
-      this.generationJobs[jobId] = {
-        jobId,
-        buildId: options.buildId,
-        status: "pending",
-        progress: 0,
-        startTime: new Date(),
-        containerId: containerStatus.containerId,
-        message: "Starting local Docker container",
-        isDocker: true
-      };
+      this.jobTracker.addJob(jobId, options.buildId, true, containerStatus.containerId);
       
       // Start the ISO generation process asynchronously
       this.runLocalIsoGeneration(jobId, options).catch(error => {
         console.error("Error in local ISO generation:", error);
-        this.generationJobs[jobId].status = "failed";
-        this.generationJobs[jobId].message = `Error: ${error}`;
+        this.jobTracker.updateJob(jobId, {
+          status: "failed",
+          message: `Error: ${error}`
+        });
       });
       
       return {
@@ -248,14 +179,13 @@ export class BackendService {
       });
       
       // Update job status based on result
-      this.generationJobs[jobId] = {
-        ...this.generationJobs[jobId],
+      this.jobTracker.updateJob(jobId, {
         status: result.success ? "completed" : "failed",
         progress: result.success ? 100 : 0,
         message: result.success 
           ? `ISO generated successfully: ${result.output}` 
           : `ISO generation failed: ${result.logs[result.logs.length - 1] || "Unknown error"}`
-      };
+      });
       
       if (!result.success) {
         throw new Error(`Local ISO generation failed: ${result.logs.join('\n')}`);
@@ -264,12 +194,11 @@ export class BackendService {
       console.error("Error generating ISO locally:", error);
       
       // Update job with failed status
-      this.generationJobs[jobId] = {
-        ...this.generationJobs[jobId],
+      this.jobTracker.updateJob(jobId, {
         status: "failed",
         progress: 0,
         message: `Error: ${error}`
-      };
+      });
       
       throw error;
     }
@@ -277,62 +206,52 @@ export class BackendService {
   
   /**
    * Check the status of an ISO generation job
-   * 
-   * @param jobId The job ID returned from requestIsoGeneration
-   * @returns The current status of the job
    */
-  async checkIsoGenerationStatus(jobId: string): Promise<{
-    status: "pending" | "processing" | "completed" | "failed";
-    progress?: number;
-    message?: string;
-    downloadUrl?: string;
-  }> {
+  async checkIsoGenerationStatus(jobId: string): Promise<IsoGenerationStatus> {
     // Check if we have a local job with this ID
-    if (this.generationJobs[jobId]) {
-      const job = this.generationJobs[jobId];
-      
+    const job = this.jobTracker.getJob(jobId);
+    
+    if (job) {
       // If using local Docker, sync with Docker container status
       if (job.isDocker && job.containerId) {
         const containerStatus = this.dockerService.getContainerStatus();
         
         if (containerStatus.containerId === job.containerId) {
           // Update progress from Docker container
-          job.progress = containerStatus.progress;
-          job.message = containerStatus.logs[containerStatus.logs.length - 1] || job.message;
+          this.jobTracker.updateJob(jobId, {
+            progress: containerStatus.progress,
+            message: containerStatus.logs[containerStatus.logs.length - 1] || job.message
+          });
           
           // Update status based on Docker container state
           if (!containerStatus.running) {
             if (containerStatus.progress >= 100) {
-              job.status = "completed";
+              this.jobTracker.updateJob(jobId, { status: "completed" });
             } else if (job.status !== "completed") {
-              job.status = "failed";
-              job.message = "Container stopped unexpectedly";
+              this.jobTracker.updateJob(jobId, {
+                status: "failed",
+                message: "Container stopped unexpectedly"
+              });
             }
           }
         }
       }
       
-      return {
-        status: job.status,
-        progress: job.progress,
-        message: job.message,
-        downloadUrl: job.status === "completed" ? this.getIsoDownloadUrl(jobId) : undefined
-      };
+      // Get the updated job
+      const updatedJob = this.jobTracker.getJob(jobId);
+      if (updatedJob) {
+        return {
+          status: updatedJob.status,
+          progress: updatedJob.progress,
+          message: updatedJob.message,
+          downloadUrl: updatedJob.status === "completed" ? this.getIsoDownloadUrl(jobId) : undefined
+        };
+      }
     }
     
     // If not a local job, check with backend API
     try {
-      const response = await fetch(`${this.apiUrl}${BACKEND_CONFIG.endpoints.status}/${jobId}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Backend error: ${response.status} ${errorText}`);
-      }
-      
-      return await response.json();
+      return await this.apiClient.checkIsoGenerationStatus(jobId);
     } catch (error) {
       console.error("Error checking ISO generation status:", error);
       throw new Error(`Failed to check ISO generation status: ${error}`);
@@ -341,28 +260,14 @@ export class BackendService {
   
   /**
    * Get the download URL for a completed ISO
-   * 
-   * @param jobId The job ID of the completed ISO generation
-   * @returns The URL to download the ISO
    */
   getIsoDownloadUrl(jobId: string, filename?: string): string {
-    const filenameParam = filename ? `?filename=${encodeURIComponent(filename)}` : '';
-    
-    // If it's a local Docker job, return a local URL
-    if (this.generationJobs[jobId]?.isDocker) {
-      // In a real implementation, this would be a local file URL
-      // For now, we'll return a simulated URL
-      return `/api/iso/local/${jobId}${filenameParam}`;
-    }
-    
-    return `${this.apiUrl}${BACKEND_CONFIG.endpoints.download}/${jobId}${filenameParam}`;
+    const job = this.jobTracker.getJob(jobId);
+    return this.apiClient.getIsoDownloadUrl(jobId, filename, job?.isDocker || false);
   }
   
   /**
    * Trigger browser download of the ISO file
-   * 
-   * @param jobId The job ID of the completed ISO generation
-   * @param filename Optional custom filename for the downloaded ISO
    */
   downloadIso(jobId: string, filename?: string): void {
     const downloadUrl = this.getIsoDownloadUrl(jobId, filename);
@@ -391,17 +296,7 @@ export class BackendService {
     isDocker: boolean;
     startTime: Date;
   }> {
-    return Object.fromEntries(
-      Object.entries(this.generationJobs)
-        .map(([jobId, job]) => [jobId, {
-          jobId,
-          buildId: job.buildId,
-          status: job.status,
-          progress: job.progress,
-          isDocker: job.isDocker,
-          startTime: job.startTime
-        }])
-    );
+    return this.jobTracker.getActiveJobs();
   }
 }
 
