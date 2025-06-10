@@ -35,7 +35,11 @@ jobs:
         run: npm install
 
       - name: Compile TypeScript libs for script
-        run: npx tsc -p tsconfig.scripts.json
+        run: |
+          npx tsc -p tsconfig.scripts.json
+          echo "--- Contents of dist_lib after tsc ---"
+          ls -R ./dist_lib || echo "dist_lib directory not found or ls failed"
+          echo "--- End contents of dist_lib ---"
 
       - name: Generate ISO
         run: |
