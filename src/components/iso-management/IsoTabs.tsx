@@ -6,14 +6,17 @@ import { Database, Download, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import IsoManager from "../IsoManager";
+// import IsoManager from "../IsoManager"; // Component does not exist
+import IsoTable from "./IsoTable"; // Import IsoTable instead
+import { IsoMetadata } from "@/lib/testing/iso-generator"; // For mock data type
 
 interface IsoTabsProps {
   refreshTrigger: number;
   onShowDockerMonitor: () => void;
+  apiConfigured: boolean; // Added prop
 }
 
-const IsoTabs = ({ refreshTrigger, onShowDockerMonitor }: IsoTabsProps) => {
+const IsoTabs = ({ refreshTrigger, onShowDockerMonitor, apiConfigured }: IsoTabsProps) => { // Destructured prop
   return (
     <Tabs defaultValue="all-isos" className="space-y-4">
       <TabsList>
@@ -23,7 +26,13 @@ const IsoTabs = ({ refreshTrigger, onShowDockerMonitor }: IsoTabsProps) => {
       </TabsList>
       
       <TabsContent value="all-isos">
-        <IsoManager refreshTrigger={refreshTrigger} />
+        {/* Render IsoTable directly, passing apiConfigured and mock/empty data for other props */}
+        <IsoTable
+          isoData={[]} // Mock empty data
+          generatingIsos={{}} // Mock empty object
+          onGenerateRealIso={() => { console.log("onGenerateRealIso from IsoTabs (mock)"); }} // Mock function
+          apiConfigured={apiConfigured}
+        />
         
         <div className="mt-6">
           <Card>

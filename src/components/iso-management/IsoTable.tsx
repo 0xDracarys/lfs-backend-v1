@@ -13,12 +13,14 @@ interface IsoTableProps {
     jobId?: string;
   }>;
   onGenerateRealIso: (iso: IsoMetadata) => void;
+  apiConfigured: boolean; // Added prop
 }
 
 const IsoTable: React.FC<IsoTableProps> = ({ 
   isoData, 
   generatingIsos, 
-  onGenerateRealIso 
+  onGenerateRealIso,
+  apiConfigured // Destructured prop
 }) => {
   return (
     <div className="overflow-x-auto">
@@ -44,6 +46,7 @@ const IsoTable: React.FC<IsoTableProps> = ({
                 index={i}
                 generationStatus={generationStatus}
                 onGenerateRealIso={onGenerateRealIso}
+                apiConfigured={apiConfigured} // Pass prop down
               />
             );
           })}
