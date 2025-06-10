@@ -189,7 +189,7 @@ const Configurations: React.FC = () => {
                     <HardDrive className="mr-2 h-5 w-5 text-blue-500" />
                     <CardTitle>{config.name}</CardTitle>
                   </div>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" className="text-muted-foreground">
                     <Settings className="h-4 w-4" />
                   </Button>
                 </div>
