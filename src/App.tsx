@@ -46,7 +46,7 @@ const App = () => {
     );
 
     return () => {
-      authListener?.unsubscribe();
+      authListener?.subscription?.unsubscribe();
     };
   }, [navigate]);
 
