@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "./dist_lib",           // Output directory for compiled JS
     "rootDir": "./src",               // Specify root to maintain folder structure in outDir
-    "module": "ESNext",             // Output ES Modules
+    "module": "NodeNext",           // Changed to NodeNext for modern Node.js ESM
     "moduleResolution": "NodeNext",   // Or "Node", "Bundler". NodeNext is modern.
     "target": "ES2022",             // Modern Node versions support this
     "declaration": false,             // No .d.ts files needed for script execution
