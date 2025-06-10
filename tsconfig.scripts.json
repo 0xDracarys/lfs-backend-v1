@@ -1,0 +1,35 @@
+{
+  "extends": "./tsconfig.json", // Inherit baseUrl, paths, etc.
+  "compilerOptions": {
+    "outDir": "./dist_lib",           // Output directory for compiled JS
+    "rootDir": "./src",               // Specify root to maintain folder structure in outDir
+    "module": "ESNext",             // Output ES Modules
+    "moduleResolution": "NodeNext",   // Or "Node", "Bundler". NodeNext is modern.
+    "target": "ES2022",             // Modern Node versions support this
+    "declaration": false,             // No .d.ts files needed for script execution
+    "skipLibCheck": true,
+    // Ensure settings from base tsconfig.json that might conflict are overridden or managed
+    // For example, if the base tsconfig.json had "noEmit": true, we'd need to override it.
+    // The current base tsconfig.json does not have "noEmit": true.
+    "noEmit": false, // Explicitly ensure emit is on
+    // The following are already in the base tsconfig.json but are good to be aware of for script compilation
+    "allowJs": true,
+    "esModuleInterop": true, // Good for interop with CommonJS if any lib uses it
+    "resolveJsonModule": true // If your scripts import JSON
+  },
+  "include": [
+    "src/lib/**/*.ts" // Compile only .ts files from src/lib
+    // Add other specific paths if your script depends on more, e.g., "src/scripts_utils/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts", // Exclude test files
+    "**/*.spec.ts",
+    "src/vite-env.d.ts", // Exclude Vite specific env types
+    "src/main.tsx",      // Exclude frontend entry point
+    "src/App.tsx",       // Exclude main App component
+    "src/pages/**/*.tsx",// Exclude page components
+    "src/components/**/*.tsx" // Exclude UI components
+    // Add other frontend specific paths if they cause issues or are not needed by the script
+  ]
+}

@@ -5,8 +5,8 @@ import path from 'path';
 // If these are TypeScript files, the GitHub Action would need a TS execution step (e.g., ts-node)
 // or they need to be pre-compiled to JS.
 // For Node.js ESM, explicit file extensions are often required for relative imports.
-import { IsoGenerator } from '../src/lib/testing/iso-generator.js';
-import { DockerService } from '../src/lib/testing/docker-service.js';
+import { IsoGenerator } from '../dist_lib/lib/testing/iso-generator.js';
+import { DockerService } from '../dist_lib/lib/testing/docker-service.js';
 
 async function main() {
   console.log('Starting ISO generation script (ESM)...');

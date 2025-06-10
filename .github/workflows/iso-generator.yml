@@ -34,6 +34,9 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Compile TypeScript libs for script
+        run: npx tsc -p tsconfig.scripts.json
+
       - name: Generate ISO
         run: |
           mkdir -p ./generated_iso # Ensure output directory exists
