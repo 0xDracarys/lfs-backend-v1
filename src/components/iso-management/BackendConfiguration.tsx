@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { ArrowRight, Server } from "lucide-react";
+import React, { useState, useEffect } from "react"; // Added useState, useEffect
+import { ArrowRight, Server, AlertTriangle } from "lucide-react"; // Added AlertTriangle
 import { toast } from "sonner";
 import { backendService } from "@/lib/testing/services/backend-service";
 
@@ -26,8 +27,19 @@ const BackendConfiguration = ({
   dockerAvailable,
   onClose,
 }: BackendConfigurationProps) => {
+  const [isServiceGloballyConfigured, setIsServiceGloballyConfigured] = useState<boolean>(true); // Default to true to avoid flash of disabled
+
+  useEffect(() => {
+    setIsServiceGloballyConfigured(backendService.isApiConfigured());
+  }, []);
   
   const handleConnectBackend = async () => {
+    if (!isServiceGloballyConfigured) {
+      toast.error("Backend URL Not Configured", {
+        description: "The VITE_ISO_BACKEND_URL is not set in the environment.",
+      });
+      return;
+    }
     setIsConnecting(true);
     
     try {
@@ -64,6 +76,15 @@ const BackendConfiguration = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {!isServiceGloballyConfigured && (
+          <div className="mb-4 p-3 rounded-md bg-yellow-50 border border-yellow-300 text-yellow-700 flex items-start">
+            <AlertTriangle className="h-5 w-5 mr-2 flex-shrink-0" />
+            <p className="text-sm">
+              The ISO Backend URL (VITE_ISO_BACKEND_URL) is not configured in the application's environment.
+              Real ISO generation via a remote backend is disabled. You can still use local Docker if available.
+            </p>
+          </div>
+        )}
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="backend-url">Backend URL</Label>
@@ -74,10 +95,11 @@ const BackendConfiguration = ({
                 onChange={(e) => setBackendUrl(e.target.value)}
                 placeholder="http://localhost:3000"
                 className="flex-1"
+                disabled={!isServiceGloballyConfigured || isConnecting}
               />
               <Button 
                 onClick={handleConnectBackend}
-                disabled={isConnecting || !backendUrl}
+                disabled={!isServiceGloballyConfigured || isConnecting || !backendUrl}
               >
                 {isConnecting ? "Connecting..." : "Connect"} {!isConnecting && <ArrowRight className="ml-2 h-4 w-4" />}
               </Button>
