@@ -3,6 +3,7 @@
   publish = "dist"
 
 [build.environment]
+  NODE_VERSION = "20" # Specify Node.js LTS version
   # You can specify a Node.js version here if your project requires it
   # Example: NODE_VERSION = "18"
   # For now, we'll leave it commented out unless a specific version is known to be needed.
