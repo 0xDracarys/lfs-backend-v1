@@ -1,18 +1,21 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
-import { Home, Settings, FileText, Disc } from "lucide-react";
+import { Link, useLocation } from "react-router-dom"; // Import useLocation
+import { Home, Settings, FileText, Disc, History as HistoryIcon } from "lucide-react"; // Added HistoryIcon
 import { cn } from "@/lib/utils";
 
 const MainNavigation: React.FC = () => {
   // Get the current path to highlight active link
-  const currentPath = window.location.pathname;
+  const location = useLocation(); // Use useLocation for better reactivity
+  const currentPath = location.pathname;
   
   const navItems = [
     { path: "/", title: "LFS Builder", icon: Home },
+    { path: "/configs", title: "Configurations", icon: Settings },
+    { path: "/history", title: "Build History", icon: HistoryIcon }, // Added Build History
     { path: "/testing", title: "Testing", icon: FileText },
-    { path: "/iso", title: "ISO Management", icon: Disc },
-    { path: "/configs", title: "Configurations", icon: Settings }
+    { path: "/iso", title: "ISO Management", icon: Disc }
+    // Ensure order is logical
   ];
   
   return (

@@ -14,11 +14,18 @@ import {
   DialogTrigger 
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { HardDrive, Plus, Settings, Trash2 } from 'lucide-react';
-import { LFSBuildConfig, getBuildConfigurations, saveBuildConfiguration } from '@/lib/supabase-integration';
+import { HardDrive, Plus, Settings, Trash2, Play } from 'lucide-react'; // Added Play icon
+import {
+  LFSBuildConfig,
+  getBuildConfigurations,
+  saveBuildConfiguration,
+  deleteBuildConfiguration // Import the new delete function
+} from '@/lib/supabase/configs'; // Adjusted import path
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const Configurations: React.FC = () => {
   const { toast } = useToast();
+  const navigate = useNavigate(); // Initialize useNavigate
   const [configs, setConfigs] = useState<LFSBuildConfig[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newConfig, setNewConfig] = useState<Omit<LFSBuildConfig, 'id' | 'created_at' | 'user_id'>>({
@@ -28,14 +35,23 @@ const Configurations: React.FC = () => {
     scripts_path: '/path/to/scripts'
   });
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null); // For delete confirmation
 
   useEffect(() => {
-    loadConfigurations();
+    // Define and call loadConfigurations within useEffect or ensure it's stable
+    const loadConfs = async () => {
+      setIsLoading(true);
+      const configsData = await getBuildConfigurations();
+      setConfigs(configsData);
+      setIsLoading(false);
+    };
+    loadConfs();
   }, []);
 
-  const loadConfigurations = async () => {
+  // Renamed local loadConfigurations to avoid confusion if we import one with same name
+  const refreshConfigurations = async () => {
     setIsLoading(true);
-    const configs = await getBuildConfigurations();
+    const configsData = await getBuildConfigurations();
     setConfigs(configs);
     setIsLoading(false);
   };
@@ -58,7 +74,7 @@ const Configurations: React.FC = () => {
           description: "Configuration saved successfully"
         });
         setDialogOpen(false);
-        await loadConfigurations();
+        await refreshConfigurations(); // Use refreshed name
         resetNewConfigForm();
       } else {
         throw new Error("Failed to save configuration");
@@ -193,13 +209,66 @@ const Configurations: React.FC = () => {
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between mt-auto">
-                <Button variant="outline" size="sm" className="flex items-center">
+                {/* Corrected Structure: Direct buttons in CardFooter */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center"
+                  onClick={() => setShowDeleteConfirm(config.id!)} // Open delete confirmation
+                >
                   <Trash2 className="mr-1 h-4 w-4 text-red-500" />
                   Delete
                 </Button>
-                <Button size="sm">Start Build</Button>
+                <Button
+                  size="sm"
+                  className="flex items-center"
+                  onClick={() => navigate('/', { state: { configId: config.id } })} // Pass configId in navigation state
+                >
+                  <Play className="mr-1 h-4 w-4" />
+                  Start Build
+                </Button>
               </CardFooter>
             </Card>
+          ))}
+          </div>
+        )}
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={!!showDeleteConfirm} onOpenChange={() => setShowDeleteConfirm(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Are you sure?</DialogTitle>
+              <DialogDescription>
+                This action cannot be undone. This will permanently delete the build configuration.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowDeleteConfirm(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  if (showDeleteConfirm) {
+                    const success = await deleteBuildConfiguration(showDeleteConfirm);
+                    if (success) {
+                      toast({ title: "Success", description: "Configuration deleted." });
+                      await refreshConfigurations();
+                    } else {
+                      // Toast for failure is handled within deleteBuildConfiguration or its utils
+                    }
+                    setShowDeleteConfirm(null);
+                  }
+                }}
+              >
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  };
           ))}
         </div>
       )}

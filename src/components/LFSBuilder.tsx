@@ -8,14 +8,19 @@ import StatusBar from "./StatusBar";
 import InputModal from "./InputModal";
 import useLFSBuilder from "../hooks/useLFSBuilder";
 import { runBuildStep } from "../utils/buildSimulation";
-import Header from "./Header";
+import Header from "./Header"; // Make sure HeaderProps is updated if session is passed
 import BuildSummary from "./BuildSummary";
 import OutputMonitor from "./OutputMonitor";
+import type { Session } from '@supabase/supabase-js'; // Import Session type
 import MainNavigation from "./MainNavigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-const LFSBuilder: React.FC = () => {
+interface LFSBuilderProps {
+  session: Session | null; // Add session to props
+}
+
+const LFSBuilder: React.FC<LFSBuilderProps> = ({ session }) => { // Destructure session
   const {
     steps,
     currentPhase,
@@ -40,7 +45,9 @@ const LFSBuilder: React.FC = () => {
     setSteps,
     setCurrentPhase,
     setCurrentContext,
-    toast
+    toast,
+    initiateBuildProcess, // Get the new function
+    resetBuild as resetLFSBuildHook // Get resetBuild from hook, aliased to avoid conflict
   } = useLFSBuilder();
 
   // Handle input submission from modal
@@ -91,19 +98,28 @@ const LFSBuilder: React.FC = () => {
   };
 
   // Start/Stop the build process
-  const toggleBuild = () => {
+  const toggleBuild = async () => { // Make toggleBuild async
     if (buildRunning) {
       setBuildRunning(false);
+      // Consider if a 'paused' status should be set in DB via updateBuildStatus from the hook
       toast({
         title: "Build Paused",
         description: "You can resume the build at any time",
       });
     } else {
+      // This is the "Start" or "Resume" part
+      const buildId = await initiateBuildProcess(); // Call the hook's function
+
+      if (!buildId) {
+        // initiateBuildProcess already shows a toast on failure if build couldn't be started/recorded
+        return;
+      }
+
       setBuildRunning(true);
       const nextStep = findNextStep();
       if (nextStep) {
         runBuildStep(nextStep, {
-          updateStepStatus,
+          updateStepStatus, // This now calls recordBuildStep internally via useLFSBuilder
           setCurrentStepId,
           appendToLog,
           appendToScriptOutput,
@@ -112,31 +128,22 @@ const LFSBuilder: React.FC = () => {
           buildRunning: true,
           findNextStep,
           setBuildRunning,
-          toast
+          toast,
         });
       } else {
         setBuildRunning(false);
+        // This case (no next step when starting/resuming)
+        // The useEffect in useLFSBuilder for progress should handle completed status.
         toast({
-          title: "Build Complete",
-          description: "All steps have been completed",
+          title: buildProgress === 100 ? "Build Already Complete" : "No Steps To Run",
+          description: buildProgress === 100 ? "All steps have been completed." : "Could not find the next step.",
         });
       }
     }
   };
 
-  // Reset the build
-  const resetBuild = () => {
-    // Directly import from the module instead of using require()
-    setSteps(LFS_BUILD_STEPS);
-    setCurrentPhase(BuildPhase.INITIAL_SETUP);
-    setCurrentContext(UserContext.ROOT);
-    appendToLog("LFS Builder reset");
-    appendToLog("Ready to begin Linux From Scratch (LFS) 11.2 build process");
-    toast({
-      title: "Build Reset",
-      description: "All progress has been reset",
-    });
-  };
+  // Reset the build (now calls resetBuild from the hook)
+  // const localResetBuild = resetLFSBuildHook; // Use the hook's resetBuild directly in the Header prop
 
   // Function to handle starting a build step
   const handleStartStep = (step: BuildStepType) => {
@@ -171,10 +178,11 @@ const LFSBuilder: React.FC = () => {
       <MainNavigation />
       
       {/* Header */}
-      <Header 
+      <Header
+        session={session} // Pass session to Header
         buildRunning={buildRunning}
         toggleBuild={toggleBuild}
-        resetBuild={resetBuild}
+        resetBuild={resetLFSBuildHook} // Use the hook's resetBuild
       />
       
       {/* Getting Started Guide */}

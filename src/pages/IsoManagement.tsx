@@ -7,8 +7,13 @@ import { useToast } from "@/components/ui/use-toast";
 import HeaderSection from "@/components/iso-management/HeaderSection";
 import BackendConfiguration from "@/components/iso-management/BackendConfiguration";
 import IsoTabs from "@/components/iso-management/IsoTabs";
+import type { Session } from '@supabase/supabase-js'; // Import Session type
 
-const IsoManagementPage = () => {
+interface IsoManagementPageProps {
+  session?: Session | null; // Make session optional for now
+}
+
+const IsoManagementPage: React.FC<IsoManagementPageProps> = ({ session }) => {
   // State management
   const [isoRefreshTrigger, setIsoRefreshTrigger] = useState<number>(0);
   const [backendUrl, setBackendUrl] = useState<string>(
@@ -49,6 +54,7 @@ const IsoManagementPage = () => {
       <MainNavigation />
       
       <div className="container mx-auto px-4 py-6">
+        {session?.user && <p className="text-sm text-gray-600 mb-1">User: {session.user.email}</p>}
         <HeaderSection 
           showDockerMonitor={showDockerMonitor}
           onToggleDockerMonitor={handleToggleDockerMonitor}
