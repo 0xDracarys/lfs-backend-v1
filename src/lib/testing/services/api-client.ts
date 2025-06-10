@@ -25,12 +25,17 @@ export class ApiClient {
    * Check if the backend API is available
    */
   async checkApiAvailability(): Promise<boolean> {
+    console.log('[ApiClient] checkApiAvailability called. apiUrl:', this.config.apiUrl, 'Status endpoint path:', this.config.endpoints?.status);
     if (!this.config.apiUrl) {
       console.warn("Backend API URL is not configured. Skipping availability check.");
       return Promise.resolve(false);
     }
     try {
-      const response = await fetch(`${this.config.apiUrl}/health`, {
+      // Using this.config.endpoints.status for health check as per instruction,
+      // though typically /health is more common for a general health check.
+      const healthCheckUrl = `${this.config.apiUrl}${this.config.endpoints.status}`;
+      console.log('[ApiClient] Attempting to fetch health check from:', healthCheckUrl);
+      const response = await fetch(healthCheckUrl, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       });
