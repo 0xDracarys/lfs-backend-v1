@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { LFSBuildConfig, getBuildConfigurations } from '@/lib/supabase/configs';
 import { LFSBuildRecord } from '@/lib/supabase/types';
 import { getAllUserBuilds } from '@/lib/supabase/builds';
-import MainNavigation from '@/components/MainNavigation'; // Assuming MainNavigation is standard layout
+// Removed: import MainNavigation from '@/components/MainNavigation';
 import { ExternalLink, Eye } from 'lucide-react'; // Icons
 import type { Session } from '@supabase/supabase-js'; // Import Session type
 
@@ -59,16 +59,16 @@ const BuildHistoryPage: React.FC<BuildHistoryPageProps> = ({ session }) => { // 
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen">
-        <MainNavigation />
-        <div className="container mx-auto py-8 text-center">Loading build history...</div>
+        {/* <MainNavigation /> Removed */}
+        <div className="container mx-auto py-8 text-center pt-8 md:pt-12">Loading build history...</div> {/* Added padding top */}
       </div>
     );
   }
 
   return (
     <div className="flex flex-col min-h-screen">
-      <MainNavigation />
-      <div className="container mx-auto py-8">
+      {/* <MainNavigation /> Removed */}
+      <div className="container mx-auto py-8 pt-8 md:pt-12"> {/* Added padding top */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Build History</h1>
           {/* Add any controls like refresh if needed */}

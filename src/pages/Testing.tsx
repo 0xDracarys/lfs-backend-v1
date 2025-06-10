@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import MainNavigation from "../components/MainNavigation";
+// Removed: import MainNavigation from "../components/MainNavigation";
 import TestRunner from "../components/TestRunner";
 import DockerSetup from "../components/DockerSetup";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,9 +22,9 @@ const Testing: React.FC<TestingProps> = ({ session }) => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <MainNavigation />
+      {/* <MainNavigation /> Removed */}
       
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 pt-8 md:pt-12"> {/* Added padding top to compensate for removed MainNavigation height */}
         <h1 className="text-3xl font-bold mb-6">LFS Testing & ISO Generation</h1>
         {session?.user && <p className="text-sm text-gray-600 mb-4">User: {session.user.email}</p>}
         
