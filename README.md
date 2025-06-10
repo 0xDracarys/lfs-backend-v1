@@ -217,10 +217,13 @@ This project can be deployed to Netlify for easy static hosting.
     *   If you need to set them manually or they are not detected, use `npm run build` as the build command and `dist` as the publish directory.
 
 3.  **Environment Variables (Crucial):**
-    *   Before deploying, you **must** configure the following environment variables in the Netlify UI. Navigate to your site's settings, then go to "Build & deploy" > "Environment variables".
+    *   Before deploying, you **must** configure the following environment variables in the Netlify UI. Navigate to your site's settings, then go to "Build & deploy" > "Environment variables":
         *   `VITE_SUPABASE_URL`: Your Supabase project URL.
         *   `VITE_SUPABASE_ANON_KEY`: Your Supabase project public anonymous key.
-    *   These variables are essential for the application to connect to your Supabase backend for features like user authentication and data persistence.
+        *   `VITE_ISO_BACKEND_URL` (Optional): The URL for your dedicated ISO generation backend service.
+            *   If you have a deployed backend for ISO generation (e.g., a Node.js server that can run Docker commands), set its public URL here.
+            *   If this is not set, or if you don't have a separate deployed backend, features requiring it (like non-simulated ISO generation initiated from the deployed site) may be limited, fall back to local Docker (which won't work for end-users of the deployed site), or operate in a simulation-only mode. The application attempts to default to `http://localhost:3000` if this variable is not provided, which will not be accessible from the deployed Netlify site to a user's local machine.
+    *   These variables are essential for the application to connect to your Supabase backend for features like user authentication and data persistence. The ISO backend URL is for specialized ISO generation features.
 
 4.  **Deploy:**
     *   Click "Deploy site" (or "Trigger deploy" if re-deploying). Netlify will then build and deploy your application.
