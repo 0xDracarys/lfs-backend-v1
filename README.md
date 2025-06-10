@@ -99,11 +99,17 @@ Authenticated users will have their build progress and configurations (in future
 
 ### Generating ISO Images
 
-1.  Navigate to the "Testing" or "ISO Management" page (actual page name may vary).
-2.  Ensure Docker is running and accessible if you want to perform a real build and ISO generation.
-3.  Select or create a test configuration that includes ISO generation.
-4.  Run the process. The system will build LFS (if part of the configuration) and then generate an ISO.
-5.  Download the generated ISO image when the process is complete.
+Real ISO image generation is handled via a GitHub Actions workflow for on-demand processing.
+
+From the application's ISO Management interface (typically found under "ISO Management" or similar in the navigation):
+*   If a live backend service for ISO generation is not configured (via the `VITE_ISO_BACKEND_URL` environment variable), the UI will guide you with instructions to use the GitHub Actions workflow. This involves:
+    1.  Navigating to your project's GitHub repository.
+    2.  Going to the "Actions" tab.
+    3.  Selecting the "Generate LFS ISO" workflow.
+    4.  Clicking "Run workflow" and providing the necessary inputs (e.g., Build ID/Name, Source Path for your LFS root filesystem, desired ISO Filename). The UI will provide suggested values for these based on the ISO you're trying to generate.
+    5.  Once the workflow completes, the generated ISO can be downloaded from the "Artifacts" section of that specific workflow run.
+
+*   **Local Development Note:** For local development, if `VITE_ISO_BACKEND_URL` is not set, the system may attempt to use local Docker as a fallback if Docker is running on your machine and is accessible. However, the GitHub Actions method is recommended for reproducible off-machine builds, especially for users of a deployed version of this application.
 
 ### Test Configurations
 
@@ -220,9 +226,9 @@ This project can be deployed to Netlify for easy static hosting.
     *   Before deploying, you **must** configure the following environment variables in the Netlify UI. Navigate to your site's settings, then go to "Build & deploy" > "Environment variables":
         *   `VITE_SUPABASE_URL`: Your Supabase project URL.
         *   `VITE_SUPABASE_ANON_KEY`: Your Supabase project public anonymous key.
-        *   `VITE_ISO_BACKEND_URL` (Optional): The URL for your dedicated ISO generation backend service.
-            *   If you have a deployed backend for ISO generation (e.g., a Node.js server that can run Docker commands), set its public URL here.
-            *   If this is not set, or if you don't have a separate deployed backend, features requiring it (like non-simulated ISO generation initiated from the deployed site) may be limited, fall back to local Docker (which won't work for end-users of the deployed site), or operate in a simulation-only mode. The application attempts to default to `http://localhost:3000` if this variable is not provided, which will not be accessible from the deployed Netlify site to a user's local machine.
+        *   `VITE_ISO_BACKEND_URL` (Optional): The URL for an optional, user-deployed, live ISO generation backend service.
+            *   If you have deployed your own backend capable of ISO generation (e.g., a Node.js server with Docker access), set its public URL here. The application will attempt to use this service for live ISO generation requests from its UI.
+            *   If this variable is not set or is empty, the application's UI will guide users to the GitHub Actions workflow for on-demand ISO generation. Features requiring this live backend will be disabled or will point to the GitHub Actions alternative.
     *   These variables are essential for the application to connect to your Supabase backend for features like user authentication and data persistence. The ISO backend URL is for specialized ISO generation features.
 
 4.  **Deploy:**
@@ -233,7 +239,8 @@ This project can be deployed to Netlify for easy static hosting.
 *   **Supabase Row Level Security (RLS):**
     *   It is **critical** to have appropriate Row Level Security (RLS) policies enabled and configured for all your tables in Supabase. This ensures that users can only access or modify data they are permitted to. The `VITE_SUPABASE_ANON_KEY` is a public key, so RLS is your primary means of data protection.
 
-*   **Docker-Dependent Features:**
-    *   Features that directly rely on a local Docker environment (like actual Docker-powered LFS builds or ISO generation beyond simple simulations) will run in 'simulation mode' or may not be fully functional when deployed directly to Netlify's static hosting platform.
-    *   Full Docker-based operations for LFS building would require a separate backend infrastructure capable of running Docker containers, which is beyond the scope of a standard Netlify static site deployment.
+*   **ISO Generation on Netlify:** The deployed frontend site itself cannot run Docker.
+            *   "Real" ISO generation for users of the deployed site is primarily handled via the on-demand GitHub Actions workflow described in the 'Usage' section.
+            *   Alternatively, if you provide a live backend URL via the `VITE_ISO_BACKEND_URL` environment variable, the site will attempt to use that service for ISO generation requests initiated from the UI.
+            *   Without either of these, ISO generation features in the UI will be limited to simulations or will guide you to the GitHub Actions workflow.
 ```
