@@ -1,13 +1,17 @@
 
 import React from "react";
-import { HardDrive, Play, Pause, RefreshCw, Settings, LogOut, User, LogIn, UserPlus } from "lucide-react"; // Added icons
+import {
+  HardDrive, Play, Pause, RefreshCw, Settings, LogOut, User, LogIn, UserPlus,
+  Home, FileText, Disc, History as HistoryIcon // Icons for nav
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from '@/integrations/supabase/client'; // Import Supabase client
-import type { Session } from '@supabase/supabase-js'; // Import Session type
-import { Link, useNavigate } from "react-router-dom"; // Import Link and useNavigate
+import { supabase } from '@/integrations/supabase/client';
+import type { Session } from '@supabase/supabase-js';
+import { Link, useNavigate, useLocation } from "react-router-dom"; // Added useLocation
+import { cn } from "@/lib/utils"; // Import cn utility
 
 interface HeaderProps {
-  session: Session | null; // Add session to props
+  session: Session | null;
   buildRunning: boolean;
   toggleBuild: () => void;
   resetBuild: () => void;
@@ -20,6 +24,16 @@ const Header: React.FC<HeaderProps> = ({
   resetBuild
 }) => {
   const navigate = useNavigate();
+  const location = useLocation(); // For active link highlighting
+  const currentPath = location.pathname;
+
+  const navItems = [
+    { path: "/", title: "Builder", icon: Home }, // Shortened title for header
+    { path: "/configs", title: "Configs", icon: Settings },
+    { path: "/history", title: "History", icon: HistoryIcon },
+    { path: "/testing", title: "Testing", icon: FileText },
+    { path: "/iso", title: "ISO Mgmt", icon: Disc }
+  ];
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -37,10 +51,29 @@ const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center space-x-2">
           <HardDrive className="h-6 w-6" />
           <h1 className="text-xl font-bold">LFS Builder</h1>
-          <span className="text-xs bg-blue-600 px-2 py-0.5 rounded">v11.2</span>
+          <span className="text-xs bg-blue-600 px-2 py-0.5 rounded mr-4">v11.2</span> {/* Added mr-4 for spacing */}
         </div>
+
+        {/* Navigation Links - Placed in the middle */}
+        <nav className="hidden md:flex items-center space-x-1">
+          {navItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={cn(
+                "px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1",
+                currentPath === item.path
+                  ? "bg-gray-700 text-white" // Active link style for dark header
+                  : "text-gray-300 hover:bg-gray-700 hover:text-white" // Default link style for dark header
+              )}
+            >
+              <item.icon className="h-4 w-4" />
+              <span>{item.title}</span>
+            </Link>
+          ))}
+        </nav>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 ml-auto"> {/* Added ml-auto to push controls to the right */}
           {/* Build Controls - keep these as they are */}
           <Button
             variant={buildRunning ? "destructive" : "default"}
@@ -56,13 +89,13 @@ const Header: React.FC<HeaderProps> = ({
             variant="outline"
             size="sm"
             onClick={resetBuild}
-            className="flex items-center text-white"
+            className="flex items-center text-gray-200"
           >
             <RefreshCw className="mr-1 h-4 w-4" />
             Reset
           </Button>
           
-          <Button variant="outline" size="icon" className="text-white">
+          <Button variant="outline" size="icon" className="text-gray-200">
             <Settings className="h-4 w-4" />
           </Button>
 
@@ -77,7 +110,7 @@ const Header: React.FC<HeaderProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={handleLogout}
-                className="flex items-center text-white"
+                className="flex items-center text-gray-200"
               >
                 <LogOut className="mr-1 h-4 w-4" />
                 Logout
@@ -86,7 +119,7 @@ const Header: React.FC<HeaderProps> = ({
           ) : (
             <>
               <Link to="/login">
-                <Button variant="outline" size="sm" className="flex items-center text-white">
+                <Button variant="outline" size="sm" className="flex items-center text-gray-200">
                   <LogIn className="mr-1 h-4 w-4" />
                   Login
                 </Button>

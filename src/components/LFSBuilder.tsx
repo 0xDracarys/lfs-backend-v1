@@ -12,7 +12,7 @@ import Header from "./Header"; // Make sure HeaderProps is updated if session is
 import BuildSummary from "./BuildSummary";
 import OutputMonitor from "./OutputMonitor";
 import type { Session } from '@supabase/supabase-js'; // Import Session type
-import MainNavigation from "./MainNavigation";
+// Removed: import MainNavigation from "./MainNavigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 // Removed: import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -174,10 +174,7 @@ const LFSBuilder: React.FC<LFSBuilderProps> = ({ session }) => { // Destructure 
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
-      {/* Navigation */}
-      <MainNavigation />
-      
-      {/* Header */}
+      {/* Header now contains navigation */}
       <Header
         session={session} // Pass session to Header
         buildRunning={buildRunning}
