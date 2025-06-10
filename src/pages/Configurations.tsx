@@ -269,11 +269,6 @@ const Configurations: React.FC = () => {
       </div>
     );
   };
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
+// Extraneous lines removed from here
 
 export default Configurations;
