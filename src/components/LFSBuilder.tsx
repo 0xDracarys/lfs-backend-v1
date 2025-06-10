@@ -47,7 +47,7 @@ const LFSBuilder: React.FC<LFSBuilderProps> = ({ session }) => { // Destructure 
     setCurrentContext,
     toast,
     initiateBuildProcess, // Get the new function
-    resetBuild as resetLFSBuildHook // Get resetBuild from hook, aliased to avoid conflict
+    resetBuild: resetLFSBuildHook, // Corrected alias syntax
   } = useLFSBuilder();
 
   // Handle input submission from modal
