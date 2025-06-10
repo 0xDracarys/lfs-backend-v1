@@ -199,3 +199,38 @@ Contributions are welcome! Please follow these general steps:
 ## License
 
 This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+## Deployment to Netlify
+
+This project can be deployed to Netlify for easy static hosting.
+
+### Steps:
+
+1.  **Connect Repository:**
+    *   Sign up or log in to [Netlify](https://www.netlify.com/).
+    *   Click "Add new site" > "Import an existing project".
+    *   Connect to your Git provider (e.g., GitHub, GitLab, Bitbucket) and select this repository.
+
+2.  **Build Settings:**
+    *   Netlify will attempt to automatically detect your build settings.
+    *   Thanks to the `netlify.toml` file included in this repository, the build command (`npm run build`) and publish directory (`dist`) should be pre-configured.
+    *   If you need to set them manually or they are not detected, use `npm run build` as the build command and `dist` as the publish directory.
+
+3.  **Environment Variables (Crucial):**
+    *   Before deploying, you **must** configure the following environment variables in the Netlify UI. Navigate to your site's settings, then go to "Build & deploy" > "Environment variables".
+        *   `VITE_SUPABASE_URL`: Your Supabase project URL.
+        *   `VITE_SUPABASE_ANON_KEY`: Your Supabase project public anonymous key.
+    *   These variables are essential for the application to connect to your Supabase backend for features like user authentication and data persistence.
+
+4.  **Deploy:**
+    *   Click "Deploy site" (or "Trigger deploy" if re-deploying). Netlify will then build and deploy your application.
+
+### Important Considerations:
+
+*   **Supabase Row Level Security (RLS):**
+    *   It is **critical** to have appropriate Row Level Security (RLS) policies enabled and configured for all your tables in Supabase. This ensures that users can only access or modify data they are permitted to. The `VITE_SUPABASE_ANON_KEY` is a public key, so RLS is your primary means of data protection.
+
+*   **Docker-Dependent Features:**
+    *   Features that directly rely on a local Docker environment (like actual Docker-powered LFS builds or ISO generation beyond simple simulations) will run in 'simulation mode' or may not be fully functional when deployed directly to Netlify's static hosting platform.
+    *   Full Docker-based operations for LFS building would require a separate backend infrastructure capable of running Docker containers, which is beyond the scope of a standard Netlify static site deployment.
+```
