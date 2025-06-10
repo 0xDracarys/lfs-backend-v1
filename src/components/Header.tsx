@@ -56,13 +56,13 @@ const Header: React.FC<HeaderProps> = ({
             variant="outline"
             size="sm"
             onClick={resetBuild}
-            className="flex items-center text-white hover:bg-gray-700 hover:text-gray-100"
+            className="flex items-center text-white"
           >
             <RefreshCw className="mr-1 h-4 w-4" />
             Reset
           </Button>
           
-          <Button variant="outline" size="icon" className="text-white hover:bg-gray-700 hover:text-gray-100">
+          <Button variant="outline" size="icon" className="text-white">
             <Settings className="h-4 w-4" />
           </Button>
 
@@ -77,7 +77,7 @@ const Header: React.FC<HeaderProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={handleLogout}
-                className="flex items-center text-white hover:bg-gray-700 hover:text-gray-100"
+                className="flex items-center text-white"
               >
                 <LogOut className="mr-1 h-4 w-4" />
                 Logout
@@ -86,7 +86,7 @@ const Header: React.FC<HeaderProps> = ({
           ) : (
             <>
               <Link to="/login">
-                <Button variant="outline" size="sm" className="flex items-center text-white hover:bg-gray-700 hover:text-gray-100">
+                <Button variant="outline" size="sm" className="flex items-center text-white">
                   <LogIn className="mr-1 h-4 w-4" />
                   Login
                 </Button>
