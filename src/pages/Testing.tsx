@@ -4,8 +4,13 @@ import MainNavigation from "../components/MainNavigation";
 import TestRunner from "../components/TestRunner";
 import DockerSetup from "../components/DockerSetup";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { Session } from '@supabase/supabase-js'; // Import Session type
 
-const Testing = () => {
+interface TestingProps {
+  session?: Session | null; // Make session optional for now
+}
+
+const Testing: React.FC<TestingProps> = ({ session }) => {
   const [useDocker, setUseDocker] = useState(false);
   
   // This is the function that needs to be fixed to match the expected signature
@@ -21,6 +26,7 @@ const Testing = () => {
       
       <div className="container mx-auto px-4 py-6">
         <h1 className="text-3xl font-bold mb-6">LFS Testing & ISO Generation</h1>
+        {session?.user && <p className="text-sm text-gray-600 mb-4">User: {session.user.email}</p>}
         
         <Tabs defaultValue="test-runner" className="w-full">
           <TabsList className="mb-6">
