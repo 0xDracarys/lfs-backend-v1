@@ -5,7 +5,7 @@ import { IsoGenerationOptions } from "../types";
  * Configuration for the backend service
  */
 export interface BackendConfig {
-  apiUrl: string;
+  apiUrl: string | null; // Allow apiUrl to be null
   endpoints: {
     generateIso: string;
     status: string;

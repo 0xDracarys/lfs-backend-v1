@@ -32,6 +32,14 @@ export class BackendService {
     // Check if API is available on init
     this.apiClient.checkApiAvailability();
   }
+
+  /**
+   * Checks if the API client (and thus the backend service for remote operations) is configured with an API URL.
+   * @returns True if apiUrl is set in the ApiClient's config, false otherwise.
+   */
+  public isApiConfigured(): boolean {
+    return this.apiClient.isConfigured();
+  }
   
   /**
    * Check if the backend API is available
