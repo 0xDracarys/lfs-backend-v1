@@ -1,0 +1,47 @@
+name: Generate LFS ISO
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_id:
+        description: 'Build ID or Name for the ISO (e.g., lfs-11.2-custom)'
+        required: true
+        default: 'lfs-custom'
+        type: string
+      source_path:
+        description: 'Path to the LFS root filesystem directory for ISO creation'
+        required: true
+        default: './lfs_root_fs_output' # Assumes LFS output is here
+        type: string
+      iso_filename:
+        description: 'Filename for the generated ISO (e.g., my-lfs.iso)'
+        required: true
+        default: 'lfs-build.iso'
+        type: string
+
+jobs:
+  generate_iso_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Use Node.js 20 LTS
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Generate ISO
+        run: |
+          mkdir -p ./generated_iso # Ensure output directory exists
+          node ./scripts/generate-iso-action.mjs             --buildId "${{ github.event.inputs.build_id }}"             --sourcePath "${{ github.event.inputs.source_path }}"             --outputPath "./generated_iso/${{ github.event.inputs.iso_filename }}"             --label "${{ github.event.inputs.build_id }}" # Use build_id as ISO label
+
+      - name: Upload ISO Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lfs-iso-${{ github.event.inputs.build_id }}
+          path: ./generated_iso/${{ github.event.inputs.iso_filename }}
+          if-no-files-found: error # Fail the action if ISO is not found
