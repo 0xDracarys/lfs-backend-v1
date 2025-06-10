@@ -2,7 +2,7 @@
 import { IsoMetadata } from "@/lib/testing/iso-generator";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { backendService } from "@/lib/testing/backend-service";
+import { backendService } from "@/lib/testing/services/backend-service";
 
 /**
  * Creates placeholder data for browser demo
