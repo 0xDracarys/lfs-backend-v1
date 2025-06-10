@@ -14,7 +14,7 @@ import OutputMonitor from "./OutputMonitor";
 import type { Session } from '@supabase/supabase-js'; // Import Session type
 import MainNavigation from "./MainNavigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+// Removed: import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface LFSBuilderProps {
   session: Session | null; // Add session to props
