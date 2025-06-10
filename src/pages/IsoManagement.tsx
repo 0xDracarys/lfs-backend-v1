@@ -8,6 +8,7 @@ import HeaderSection from "@/components/iso-management/HeaderSection";
 import BackendConfiguration from "@/components/iso-management/BackendConfiguration";
 import IsoTabs from "@/components/iso-management/IsoTabs";
 import type { Session } from '@supabase/supabase-js'; // Import Session type
+import { backendService } from "@/lib/testing/services/backend-service"; // Import backendService
 
 interface IsoManagementPageProps {
   session?: Session | null; // Make session optional for now
@@ -25,8 +26,9 @@ const IsoManagementPage: React.FC<IsoManagementPageProps> = ({ session }) => {
   const [showDockerMonitor, setShowDockerMonitor] = useState<boolean>(false);
   const [dockerAvailable, setDockerAvailable] = useState<boolean | null>(null);
   const [dockerService] = useState<DockerService>(() => new DockerService());
+  const [isApiConfigured, setIsApiConfigured] = useState<boolean>(false); // State for API config status
   
-  // Check Docker availability on component mount
+  // Check Docker availability and API configuration on component mount
   useEffect(() => {
     const checkDocker = async () => {
       try {
@@ -39,6 +41,7 @@ const IsoManagementPage: React.FC<IsoManagementPageProps> = ({ session }) => {
     };
     
     checkDocker();
+    setIsApiConfigured(backendService.isApiConfigured()); // Check API config status
   }, [dockerService]);
   
   const handleRefresh = () => {
@@ -83,6 +86,7 @@ const IsoManagementPage: React.FC<IsoManagementPageProps> = ({ session }) => {
         <IsoTabs 
           refreshTrigger={isoRefreshTrigger} 
           onShowDockerMonitor={() => setShowDockerMonitor(true)}
+          apiConfigured={isApiConfigured} // Pass prop down
         />
       </div>
     </div>

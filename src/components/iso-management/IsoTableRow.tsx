@@ -18,13 +18,15 @@ interface IsoTableRowProps {
     jobId?: string;
   } | null;
   onGenerateRealIso: (iso: IsoMetadata) => void;
+  apiConfigured: boolean; // Added prop
 }
 
 const IsoTableRow: React.FC<IsoTableRowProps> = ({ 
   iso, 
   index, 
   generationStatus,
-  onGenerateRealIso 
+  onGenerateRealIso,
+  apiConfigured // Destructured prop
 }) => {
   const isGenerating = generationStatus !== null;
   
@@ -60,15 +62,28 @@ const IsoTableRow: React.FC<IsoTableRowProps> = ({
             />
           )}
           
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="flex items-center gap-1"
-            onClick={() => onGenerateRealIso(iso)}
-            disabled={isGenerating && generationStatus?.status !== "failed"}
-          >
-            <Database className="h-4 w-4" /> Generate Real ISO
-          </Button>
+          {apiConfigured ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-1"
+              onClick={() => onGenerateRealIso(iso)}
+              disabled={isGenerating && generationStatus?.status !== "failed"}
+              title="Request ISO generation from the configured backend service."
+            >
+              <Database className="h-4 w-4" /> Generate Real ISO
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-1 text-muted-foreground cursor-not-allowed"
+              disabled={true}
+              title="Real ISO generation is not available because the backend service URL (VITE_ISO_BACKEND_URL) is not configured."
+            >
+              <Database className="h-4 w-4" /> Generate Real ISO
+            </Button>
+          )}
           
           <Button 
             size="sm" 
