@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import MainNavigation from "../components/MainNavigation";
+// Removed: import MainNavigation from "../components/MainNavigation";
 import DockerMonitor from "../components/DockerMonitor";
 import { DockerService } from "@/lib/testing/docker-service";
 import { useToast } from "@/components/ui/use-toast";
@@ -54,9 +54,9 @@ const IsoManagementPage: React.FC<IsoManagementPageProps> = ({ session }) => {
   
   return (
     <div className="flex flex-col min-h-screen">
-      <MainNavigation />
+      {/* <MainNavigation /> Removed */}
       
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 pt-8 md:pt-12"> {/* Added padding top */}
         {session?.user && <p className="text-sm text-gray-600 mb-1">User: {session.user.email}</p>}
         <HeaderSection 
           showDockerMonitor={showDockerMonitor}
