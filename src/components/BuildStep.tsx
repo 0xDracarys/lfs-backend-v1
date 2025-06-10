@@ -3,7 +3,7 @@ import React from "react";
 import { BuildStep as BuildStepType, BuildStatus, UserContext } from "../lib/lfs-automation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+// Removed: import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CheckCircle, Circle, PlayCircle, AlertCircle, Clock } from "lucide-react";
 
 interface BuildStepProps {
@@ -68,18 +68,12 @@ const BuildStep: React.FC<BuildStepProps> = ({ step, onStart, disabled = false }
           <span className="mr-2">{getStatusIcon()}</span>
           <h4 className="text-base font-medium">{step.name}</h4>
         </div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <div className={`text-xs ${getStatusClass()} font-medium uppercase`}>
-                {step.status}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{step.context} context</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        {/* TooltipProvider and Tooltip removed, status text remains */}
+        <div className={`text-xs ${getStatusClass()} font-medium uppercase`}>
+          {step.status}
+        </div>
+        {/* Consider adding context display back if important, e.g., next to status or below description */}
+        {/* <p className="text-xs text-gray-500">{step.context} context</p> */}
       </CardHeader>
 
       <CardContent className="py-2 text-sm text-gray-600">
