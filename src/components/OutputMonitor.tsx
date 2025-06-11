@@ -29,12 +29,12 @@ const OutputMonitor: React.FC<OutputMonitorProps> = ({
           </TabsList>
         </div>
         
-        {/* Apply terminal screen styling to the content area where logs are displayed */}
-        <TabsContent value="logs" className="bg-black text-terminal-text font-mono p-4 rounded-md overflow-auto">
+        {/* Apply HTB screen styling to the content area where logs are displayed */}
+        <TabsContent value="logs" className="bg-htb-bg-primary text-htb-text-primary font-mono p-4 rounded-md overflow-auto">
           <LogViewer logs={logs} maxHeight="400px" />
         </TabsContent>
         
-        <TabsContent value="script" className="bg-black text-terminal-text font-mono p-4 rounded-md overflow-auto">
+        <TabsContent value="script" className="bg-htb-bg-primary text-htb-text-primary font-mono p-4 rounded-md overflow-auto">
           <LogViewer 
             logs={scriptOutput}
             title="Script Output" 

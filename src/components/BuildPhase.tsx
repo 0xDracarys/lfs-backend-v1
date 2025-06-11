@@ -28,19 +28,19 @@ const BuildPhaseComponent: React.FC<BuildPhaseProps> = ({
   const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
   
   return (
-    <Card className={`mb-4 ${isCurrentPhase ? 'ring-2 ring-offset-2 ring-terminal-accent-primary' : ''}`}>
+    <Card className={`mb-4 ${isCurrentPhase ? 'ring-2 ring-offset-2 ring-htb-accent-green' : ''}`}>
       <CardHeader 
-        className="py-3 cursor-pointer" // Removed specific bg-* colors
+        className="py-3 cursor-pointer"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <h3 className="font-semibold text-foreground">{phase}</h3> {/* Ensure text color */}
+            <h3 className="font-semibold text-foreground">{phase}</h3>
             {isCurrentPhase && (
-              <span className="bg-terminal-accent-primary text-terminal-bg text-xs px-2 py-0.5 rounded-full">Current</span>
+              <span className="bg-htb-accent-green text-htb-bg-primary text-xs px-2 py-0.5 rounded-full">Current</span>
             )}
             {isCompleted && (
-              <span className="bg-terminal-success text-terminal-bg text-xs px-2 py-0.5 rounded-full">Completed</span>
+              <span className="bg-htb-status-success text-htb-bg-primary text-xs px-2 py-0.5 rounded-full">Completed</span>
             )}
           </div>
           

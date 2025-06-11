@@ -4,109 +4,110 @@
 
 @layer base {
   :root {
-    /* Terminal Theme Variables using HSL values */
-    --terminal-bg-val: 220 13% 18%;
-    --terminal-text-val: 220 10% 70%;
-    --terminal-accent-primary-val: 207 70% 62%;
-    --terminal-accent-secondary-val: 286 44% 66%;
-    --terminal-success-val: 95 38% 62%;
-    --terminal-error-val: 355 65% 67%;
-    --terminal-warning-val: 30 42% 60%;
-    --terminal-border-val: 219 9% 26%;
+    /* HTB Theme Variables using HSL values */
+    --htb-bg-primary-val: 222 39% 11%;
+    --htb-bg-secondary-val: 215 28% 17%;
+    --htb-text-primary-val: 225 8% 96%;
+    --htb-text-secondary-val: 215 14% 65%;
+    --htb-accent-green-val: 160 80% 40%;
+    --htb-accent-cyan-val: 187 95% 43%;
+    --htb-status-error-val: 0 84% 60%;
+    --htb-status-warning-val: 38 92% 50%;
+    /* --htb-status-success-val is same as --htb-accent-green-val */
+    --htb-border-primary-val: 215 19% 27%;
 
-    /* Overriding shadcn default background and foreground with terminal theme */
-    --background: hsl(var(--terminal-bg-val));
-    --foreground: hsl(var(--terminal-text-val));
+    /* Overriding shadcn default background and foreground with HTB theme */
+    --background: hsl(var(--htb-bg-primary-val));
+    --foreground: hsl(var(--htb-text-primary-val));
 
-    /* Mapping terminal colors to existing shadcn variable names */
-    --primary: hsl(var(--terminal-accent-primary-val));
-    --primary-foreground: hsl(var(--terminal-bg-val)); /* Text on primary button */
+    /* Mapping HTB colors to existing shadcn variable names */
+    --primary: hsl(var(--htb-accent-green-val));
+    --primary-foreground: hsl(var(--htb-bg-primary-val)); /* Dark text on green bg */
 
-    --secondary: hsl(var(--terminal-accent-secondary-val));
-    --secondary-foreground: hsl(var(--terminal-bg-val)); /* Text on secondary button */
+    --secondary: hsl(var(--htb-bg-secondary-val)); /* Could also be cyan */
+    --secondary-foreground: hsl(var(--htb-text-primary-val));
 
-    --muted: hsl(var(--terminal-border-val)); /* Muted backgrounds, e.g., badges */
-    --muted-foreground: hsl(var(--terminal-text-val)); /* Text on muted backgrounds */
+    --muted: hsl(var(--htb-border-primary-val)); /* Muted backgrounds/elements */
+    --muted-foreground: hsl(var(--htb-text-secondary-val)); /* Muted text */
 
-    --accent: hsl(var(--terminal-accent-primary-val)); /* Often used for hover states or active elements */
-    --accent-foreground: hsl(var(--terminal-bg-val));
+    --accent: hsl(var(--htb-accent-cyan-val)); /* General accents */
+    --accent-foreground: hsl(var(--htb-bg-primary-val)); /* Dark text on cyan bg */
 
-    --destructive: hsl(var(--terminal-error-val));
-    --destructive-foreground: hsl(var(--terminal-bg-val)); /* Ensuring contrast */
+    --destructive: hsl(var(--htb-status-error-val));
+    --destructive-foreground: hsl(var(--htb-text-primary-val)); /* Light text on red bg */
 
-    --border: hsl(var(--terminal-border-val));
-    --input: hsl(var(--terminal-border-val)); /* Input field border */
-    --ring: hsl(var(--terminal-accent-primary-val)); /* Focus ring color */
+    --border: hsl(var(--htb-border-primary-val));
+    --input: hsl(var(--htb-border-primary-val)); /* Input field border */
+    --ring: hsl(var(--htb-accent-green-val)); /* Focus ring color */
 
-    --card: hsl(var(--terminal-bg-val)); /* Card background */
-    --card-foreground: hsl(var(--terminal-text-val)); /* Card text */
+    --card: hsl(var(--htb-bg-secondary-val)); /* Card background */
+    --card-foreground: hsl(var(--htb-text-primary-val)); /* Card text */
 
-    --popover: hsl(var(--terminal-bg-val));
-    --popover-foreground: hsl(var(--terminal-text-val));
+    --popover: hsl(var(--htb-bg-secondary-val));
+    --popover-foreground: hsl(var(--htb-text-primary-val));
 
     --radius: 0.5rem;
 
-    /* Sidebar specific theme - can also use terminal colors or be distinct */
-    /* For now, let's make sidebar consistent with the terminal theme */
-    --sidebar-background: hsl(var(--terminal-bg-val));
-    --sidebar-foreground: hsl(var(--terminal-text-val));
-    --sidebar-primary: hsl(var(--terminal-accent-primary-val));
-    --sidebar-primary-foreground: hsl(var(--terminal-bg-val));
-    --sidebar-accent: hsl(var(--terminal-border-val)); /* Slightly different accent for sidebar items */
-    --sidebar-accent-foreground: hsl(var(--terminal-accent-primary-val));
-    --sidebar-border: hsl(var(--terminal-border-val));
-    --sidebar-ring: hsl(var(--terminal-accent-primary-val));
+    /* Sidebar specific theme - making it consistent with HTB theme */
+    --sidebar-background: hsl(var(--htb-bg-secondary-val));
+    --sidebar-foreground: hsl(var(--htb-text-primary-val));
+    --sidebar-primary: hsl(var(--htb-accent-green-val));
+    --sidebar-primary-foreground: hsl(var(--htb-bg-primary-val));
+    --sidebar-accent: hsl(var(--htb-accent-cyan-val));
+    --sidebar-accent-foreground: hsl(var(--htb-bg-primary-val));
+    --sidebar-border: hsl(var(--htb-border-primary-val));
+    --sidebar-ring: hsl(var(--htb-accent-green-val));
   }
 
-  /* The .dark class might not be strictly necessary if :root is already dark themed. */
-  /* However, if there's a theme toggle, this ensures .dark explicitly uses the terminal theme. */
+  /* Ensure .dark class also uses HTB theme if a theme toggle exists/is added later */
   .dark {
-    --terminal-bg-val: 220 13% 18%;
-    --terminal-text-val: 220 10% 70%;
-    --terminal-accent-primary-val: 207 70% 62%;
-    --terminal-accent-secondary-val: 286 44% 66%;
-    --terminal-success-val: 95 38% 62%;
-    --terminal-error-val: 355 65% 67%;
-    --terminal-warning-val: 30 42% 60%;
-    --terminal-border-val: 219 9% 26%;
+    --htb-bg-primary-val: 222 39% 11%;
+    --htb-bg-secondary-val: 215 28% 17%;
+    --htb-text-primary-val: 225 8% 96%;
+    --htb-text-secondary-val: 215 14% 65%;
+    --htb-accent-green-val: 160 80% 40%;
+    --htb-accent-cyan-val: 187 95% 43%;
+    --htb-status-error-val: 0 84% 60%;
+    --htb-status-warning-val: 38 92% 50%;
+    --htb-border-primary-val: 215 19% 27%;
 
-    --background: hsl(var(--terminal-bg-val));
-    --foreground: hsl(var(--terminal-text-val));
+    --background: hsl(var(--htb-bg-primary-val));
+    --foreground: hsl(var(--htb-text-primary-val));
 
-    --primary: hsl(var(--terminal-accent-primary-val));
-    --primary-foreground: hsl(var(--terminal-bg-val));
+    --primary: hsl(var(--htb-accent-green-val));
+    --primary-foreground: hsl(var(--htb-bg-primary-val));
 
-    --secondary: hsl(var(--terminal-accent-secondary-val));
-    --secondary-foreground: hsl(var(--terminal-bg-val));
+    --secondary: hsl(var(--htb-bg-secondary-val));
+    --secondary-foreground: hsl(var(--htb-text-primary-val));
 
-    --muted: hsl(var(--terminal-border-val));
-    --muted-foreground: hsl(var(--terminal-text-val));
+    --muted: hsl(var(--htb-border-primary-val));
+    --muted-foreground: hsl(var(--htb-text-secondary-val));
 
-    --accent: hsl(var(--terminal-accent-primary-val));
-    --accent-foreground: hsl(var(--terminal-bg-val));
+    --accent: hsl(var(--htb-accent-cyan-val));
+    --accent-foreground: hsl(var(--htb-bg-primary-val));
 
-    --destructive: hsl(var(--terminal-error-val));
-    --destructive-foreground: hsl(var(--terminal-bg-val));
+    --destructive: hsl(var(--htb-status-error-val));
+    --destructive-foreground: hsl(var(--htb-text-primary-val));
 
-    --border: hsl(var(--terminal-border-val));
-    --input: hsl(var(--terminal-border-val));
-    --ring: hsl(var(--terminal-accent-primary-val));
+    --border: hsl(var(--htb-border-primary-val));
+    --input: hsl(var(--htb-border-primary-val));
+    --ring: hsl(var(--htb-accent-green-val));
 
-    --card: hsl(var(--terminal-bg-val));
-    --card-foreground: hsl(var(--terminal-text-val));
+    --card: hsl(var(--htb-bg-secondary-val));
+    --card-foreground: hsl(var(--htb-text-primary-val));
 
-    --popover: hsl(var(--terminal-bg-val));
-    --popover-foreground: hsl(var(--terminal-text-val));
+    --popover: hsl(var(--htb-bg-secondary-val));
+    --popover-foreground: hsl(var(--htb-text-primary-val));
 
     /* Sidebar specific theme for .dark */
-    --sidebar-background: hsl(var(--terminal-bg-val));
-    --sidebar-foreground: hsl(var(--terminal-text-val));
-    --sidebar-primary: hsl(var(--terminal-accent-primary-val));
-    --sidebar-primary-foreground: hsl(var(--terminal-bg-val));
-    --sidebar-accent: hsl(var(--terminal-border-val));
-    --sidebar-accent-foreground: hsl(var(--terminal-accent-primary-val));
-    --sidebar-border: hsl(var(--terminal-border-val));
-    --sidebar-ring: hsl(var(--terminal-accent-primary-val));
+    --sidebar-background: hsl(var(--htb-bg-secondary-val));
+    --sidebar-foreground: hsl(var(--htb-text-primary-val));
+    --sidebar-primary: hsl(var(--htb-accent-green-val));
+    --sidebar-primary-foreground: hsl(var(--htb-bg-primary-val));
+    --sidebar-accent: hsl(var(--htb-accent-cyan-val));
+    --sidebar-accent-foreground: hsl(var(--htb-bg-primary-val));
+    --sidebar-border: hsl(var(--htb-border-primary-val));
+    --sidebar-ring: hsl(var(--htb-accent-green-val));
   }
 }
 
@@ -117,5 +118,9 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  a {
+    @apply text-primary hover:text-primary/80 underline underline-offset-4;
   }
 }

@@ -52,12 +52,12 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="bg-gray-900 text-white py-4">
+    <header className="bg-background text-foreground py-4"> {/* Use CSS variables */}
       <div className="container mx-auto px-4 flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <HardDrive className="h-6 w-6" />
+          <HardDrive className="h-6 w-6 text-htb-accent-green" /> {/* Icon color */}
           <h1 className="text-xl font-bold">LFS Builder</h1>
-          <span className="text-xs bg-terminal-accent-secondary text-terminal-bg px-2 py-0.5 rounded mr-4">v11.2</span> {/* Added mr-4 for spacing, themed badge */}
+          <span className="text-xs bg-htb-accent-green text-htb-bg-primary px-2 py-0.5 rounded mr-4">v11.2</span> {/* HTB themed badge */}
         </div>
 
         {/* Navigation Links - Placed in the middle */}
@@ -69,11 +69,11 @@ const Header: React.FC<HeaderProps> = ({
               className={cn(
                 "px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1",
                 currentPath === item.path
-                  ? "bg-gray-700 text-white"
-                  : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                  ? "bg-htb-bg-secondary text-htb-text-primary" // Active link style
+                  : "text-htb-text-secondary hover:bg-htb-bg-secondary hover:text-htb-text-primary" // Inactive link style
               )}
             >
-              <item.icon className="h-4 w-4" />
+              <item.icon className="h-4 w-4" /> {/* Icons should inherit color or be explicitly set if needed */}
               <span>{item.title}</span>
             </Link>
           ))}
@@ -82,23 +82,26 @@ const Header: React.FC<HeaderProps> = ({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  variant="ghost" // Use ghost variant for a less intrusive look
-                  className="px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1 text-gray-300 hover:bg-gray-700 hover:text-white focus-visible:ring-0"
+                  variant="ghost"
+                  className="px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1 text-htb-text-secondary hover:bg-htb-bg-secondary hover:text-htb-text-primary focus-visible:ring-0"
                 >
                   <span>More</span>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-gray-800 text-white border-gray-700">
+              {/* DropdownMenuContent styling is handled by ui/dropdown-menu.tsx which uses CSS variables like --popover */}
+              <DropdownMenuContent>
                 {navItems.slice(3).map((item) => (
-                  <DropdownMenuItem key={item.path} asChild className="hover:bg-gray-700 focus:bg-gray-700 cursor-pointer">
+                  // DropdownMenuItem styling is handled by ui/dropdown-menu.tsx (focus:bg-accent)
+                  // We need to ensure that link behavior is preserved and text colors are right.
+                  <DropdownMenuItem key={item.path} asChild className="focus:bg-htb-accent-green/20 cursor-pointer">
                     <Link
                       to={item.path}
                       className={cn(
-                        "w-full px-3 py-2 text-sm font-medium flex items-center space-x-1",
-                        currentPath === item.path
-                          ? "bg-gray-700 text-white" // Active style for dropdown item
-                          : "text-gray-300"
+                        "w-full flex items-center space-x-1", // Ensure text color is applied by parent or explicitly
+                         currentPath === item.path
+                          ? "text-htb-accent-green" // Active item in dropdown
+                          : "text-htb-text-secondary hover:text-htb-text-primary"
                       )}
                     >
                       <item.icon className="h-4 w-4 mr-2" />
@@ -111,8 +114,8 @@ const Header: React.FC<HeaderProps> = ({
           )}
         </nav>
         
-        <div className="flex items-center space-x-4 ml-auto"> {/* Added ml-auto to push controls to the right */}
-          {/* Build Controls - keep these as they are */}
+        <div className="flex items-center space-x-4 ml-auto">
+          {/* Build Controls - Buttons are already themed via button.tsx and global CSS vars */}
           <Button
             variant={buildRunning ? "destructive" : "default"}
             size="sm"
@@ -127,13 +130,13 @@ const Header: React.FC<HeaderProps> = ({
             variant="outline"
             size="sm"
             onClick={resetBuild}
-            className="flex items-center text-gray-200"
+            className="flex items-center" // Text color will come from themed outline button
           >
             <RefreshCw className="mr-1 h-4 w-4" />
             Reset
           </Button>
           
-          <Button variant="outline" size="icon" className="text-gray-200">
+          <Button variant="outline" size="icon" className=""> {/* Text color will come from themed outline button */}
             <Settings className="h-4 w-4" />
           </Button>
 
@@ -141,14 +144,14 @@ const Header: React.FC<HeaderProps> = ({
           {session?.user ? (
             <>
               <div className="flex items-center space-x-2">
-                <User className="h-5 w-5" />
-                <span className="text-sm">{session.user.email}</span>
+                <User className="h-5 w-5 text-htb-accent-cyan" /> {/* Icon color */}
+                <span className="text-sm text-htb-text-secondary">{session.user.email}</span>
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleLogout}
-                className="flex items-center text-gray-200"
+                className="flex items-center" // Text color from themed outline
               >
                 <LogOut className="mr-1 h-4 w-4" />
                 Logout
@@ -157,13 +160,13 @@ const Header: React.FC<HeaderProps> = ({
           ) : (
             <>
               <Link to="/login">
-                <Button variant="outline" size="sm" className="flex items-center text-gray-200">
+                <Button variant="outline" size="sm" className="flex items-center">
                   <LogIn className="mr-1 h-4 w-4" />
                   Login
                 </Button>
               </Link>
               <Link to="/register">
-                <Button variant="default" size="sm" className="flex items-center"> {/* Keep default for register or choose another */}
+                <Button variant="default" size="sm" className="flex items-center">
                   <UserPlus className="mr-1 h-4 w-4" />
                   Register
                 </Button>
