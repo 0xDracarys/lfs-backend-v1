@@ -10,13 +10,12 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
-// Removed Tooltip related imports:
-// import {
-//   Tooltip,
-//   TooltipContent,
-//   TooltipProvider,
-//   TooltipTrigger,
-// } from "@/components/ui/tooltip"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -130,7 +129,7 @@ const SidebarProvider = React.forwardRef<
 
     return (
       <SidebarContext.Provider value={contextValue}>
-        {/* <TooltipProvider delayDuration={0}> */} {/* TooltipProvider removed */}
+        <TooltipProvider delayDuration={0}> {/* TooltipProvider reinstated */}
           <div
             style={
               {
@@ -148,7 +147,7 @@ const SidebarProvider = React.forwardRef<
           >
             {children}
           </div>
-        {/* </TooltipProvider> */} {/* TooltipProvider removed */}
+        </TooltipProvider> {/* TooltipProvider reinstated */}
       </SidebarContext.Provider>
     )
   }
@@ -566,28 +565,28 @@ const SidebarMenuButton = React.forwardRef<
       />
     )
 
-    // Tooltip logic removed, return button directly
-    // if (!tooltip) {
-    return button
-    // }
+    // Tooltip logic reinstated
+    if (!tooltip) {
+      return button
+    }
 
-    // if (typeof tooltip === "string") {
-    //   tooltip = {
-    //     children: tooltip,
-    //   }
-    // }
+    if (typeof tooltip === "string") {
+      tooltip = {
+        children: tooltip,
+      }
+    }
 
-    // return (
-    //   <Tooltip>
-    //     <TooltipTrigger asChild>{button}</TooltipTrigger>
-    //     <TooltipContent
-    //       side="right"
-    //       align="center"
-    //       hidden={state !== "collapsed" || isMobile}
-    //       {...tooltip}
-    //     />
-    //   </Tooltip>
-    // )
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipContent
+          side="right"
+          align="center"
+          hidden={state !== "collapsed" || isMobile}
+          {...tooltip}
+        />
+      </Tooltip>
+    )
   }
 )
 SidebarMenuButton.displayName = "SidebarMenuButton"

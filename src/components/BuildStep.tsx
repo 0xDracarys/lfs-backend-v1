@@ -3,7 +3,7 @@ import React from "react";
 import { BuildStep as BuildStepType, BuildStatus, UserContext } from "../lib/lfs-automation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-// Removed: import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CheckCircle, Circle, PlayCircle, AlertCircle, Clock } from "lucide-react";
 
 interface BuildStepProps {
