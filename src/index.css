@@ -4,110 +4,111 @@
 
 @layer base {
   :root {
-    /* HTB Theme Variables using HSL values */
-    --htb-bg-primary-val: 222 39% 11%;
-    --htb-bg-secondary-val: 215 28% 17%;
-    --htb-text-primary-val: 225 8% 96%;
-    --htb-text-secondary-val: 215 14% 65%;
-    --htb-accent-green-val: 160 80% 40%;
-    --htb-accent-cyan-val: 187 95% 43%;
-    --htb-status-error-val: 0 84% 60%;
-    --htb-status-warning-val: 38 92% 50%;
-    /* --htb-status-success-val is same as --htb-accent-green-val */
-    --htb-border-primary-val: 215 19% 27%;
+    /* User Provided Theme Variables using HSL values */
+    --theme-bg-primary-val: 225 39% 11%;
+    --theme-bg-secondary-val: 223 35% 13%;
+    --theme-text-primary-val: 0 0% 100%;
+    --theme-text-secondary-val: 0 0% 77%;
+    --theme-accent-lime-val: 74 100% 47%;
+    --theme-accent-blue-val: 213 100% 50%;
+    --theme-status-error-val: 0 100% 62%;
+    --theme-status-warning-val: 46 100% 50%;
+    --theme-status-success-val: 122 39% 49%;
+    --theme-border-primary-val: 220 23% 20%;
 
-    /* Overriding shadcn default background and foreground with HTB theme */
-    --background: hsl(var(--htb-bg-primary-val));
-    --foreground: hsl(var(--htb-text-primary-val));
+    /* Overriding shadcn default background and foreground with new theme */
+    --background: hsl(var(--theme-bg-primary-val));
+    --foreground: hsl(var(--theme-text-primary-val));
 
-    /* Mapping HTB colors to existing shadcn variable names */
-    --primary: hsl(var(--htb-accent-green-val));
-    --primary-foreground: hsl(var(--htb-bg-primary-val)); /* Dark text on green bg */
+    /* Mapping new theme colors to existing shadcn variable names */
+    --primary: hsl(var(--theme-accent-lime-val));
+    --primary-foreground: hsl(var(--theme-bg-primary-val));
 
-    --secondary: hsl(var(--htb-bg-secondary-val)); /* Could also be cyan */
-    --secondary-foreground: hsl(var(--htb-text-primary-val));
+    --secondary: hsl(var(--theme-accent-blue-val));
+    --secondary-foreground: hsl(var(--theme-text-primary-val));
 
-    --muted: hsl(var(--htb-border-primary-val)); /* Muted backgrounds/elements */
-    --muted-foreground: hsl(var(--htb-text-secondary-val)); /* Muted text */
+    --muted: hsl(var(--theme-border-primary-val));
+    --muted-foreground: hsl(var(--theme-text-secondary-val));
 
-    --accent: hsl(var(--htb-accent-cyan-val)); /* General accents */
-    --accent-foreground: hsl(var(--htb-bg-primary-val)); /* Dark text on cyan bg */
+    --accent: hsl(var(--theme-accent-blue-val));
+    --accent-foreground: hsl(var(--theme-text-primary-val));
 
-    --destructive: hsl(var(--htb-status-error-val));
-    --destructive-foreground: hsl(var(--htb-text-primary-val)); /* Light text on red bg */
+    --destructive: hsl(var(--theme-status-error-val));
+    --destructive-foreground: hsl(var(--theme-text-primary-val));
 
-    --border: hsl(var(--htb-border-primary-val));
-    --input: hsl(var(--htb-border-primary-val)); /* Input field border */
-    --ring: hsl(var(--htb-accent-green-val)); /* Focus ring color */
+    --border: hsl(var(--theme-border-primary-val));
+    --input: hsl(var(--theme-border-primary-val));
+    --ring: hsl(var(--theme-accent-lime-val));
 
-    --card: hsl(var(--htb-bg-secondary-val)); /* Card background */
-    --card-foreground: hsl(var(--htb-text-primary-val)); /* Card text */
+    --card: hsl(var(--theme-bg-secondary-val));
+    --card-foreground: hsl(var(--theme-text-primary-val));
 
-    --popover: hsl(var(--htb-bg-secondary-val));
-    --popover-foreground: hsl(var(--htb-text-primary-val));
+    --popover: hsl(var(--theme-bg-secondary-val));
+    --popover-foreground: hsl(var(--theme-text-primary-val));
 
     --radius: 0.5rem;
 
-    /* Sidebar specific theme - making it consistent with HTB theme */
-    --sidebar-background: hsl(var(--htb-bg-secondary-val));
-    --sidebar-foreground: hsl(var(--htb-text-primary-val));
-    --sidebar-primary: hsl(var(--htb-accent-green-val));
-    --sidebar-primary-foreground: hsl(var(--htb-bg-primary-val));
-    --sidebar-accent: hsl(var(--htb-accent-cyan-val));
-    --sidebar-accent-foreground: hsl(var(--htb-bg-primary-val));
-    --sidebar-border: hsl(var(--htb-border-primary-val));
-    --sidebar-ring: hsl(var(--htb-accent-green-val));
+    /* Sidebar specific theme - making it consistent with new theme */
+    --sidebar-background: hsl(var(--theme-bg-secondary-val));
+    --sidebar-foreground: hsl(var(--theme-text-primary-val));
+    --sidebar-primary: hsl(var(--theme-accent-lime-val));
+    --sidebar-primary-foreground: hsl(var(--theme-bg-primary-val));
+    --sidebar-accent: hsl(var(--theme-accent-blue-val));
+    --sidebar-accent-foreground: hsl(var(--theme-text-primary-val));
+    --sidebar-border: hsl(var(--theme-border-primary-val));
+    --sidebar-ring: hsl(var(--theme-accent-lime-val));
   }
 
-  /* Ensure .dark class also uses HTB theme if a theme toggle exists/is added later */
+  /* Ensure .dark class also uses the new theme */
   .dark {
-    --htb-bg-primary-val: 222 39% 11%;
-    --htb-bg-secondary-val: 215 28% 17%;
-    --htb-text-primary-val: 225 8% 96%;
-    --htb-text-secondary-val: 215 14% 65%;
-    --htb-accent-green-val: 160 80% 40%;
-    --htb-accent-cyan-val: 187 95% 43%;
-    --htb-status-error-val: 0 84% 60%;
-    --htb-status-warning-val: 38 92% 50%;
-    --htb-border-primary-val: 215 19% 27%;
+    --theme-bg-primary-val: 225 39% 11%;
+    --theme-bg-secondary-val: 223 35% 13%;
+    --theme-text-primary-val: 0 0% 100%;
+    --theme-text-secondary-val: 0 0% 77%;
+    --theme-accent-lime-val: 74 100% 47%;
+    --theme-accent-blue-val: 213 100% 50%;
+    --theme-status-error-val: 0 100% 62%;
+    --theme-status-warning-val: 46 100% 50%;
+    --theme-status-success-val: 122 39% 49%;
+    --theme-border-primary-val: 220 23% 20%;
 
-    --background: hsl(var(--htb-bg-primary-val));
-    --foreground: hsl(var(--htb-text-primary-val));
+    --background: hsl(var(--theme-bg-primary-val));
+    --foreground: hsl(var(--theme-text-primary-val));
 
-    --primary: hsl(var(--htb-accent-green-val));
-    --primary-foreground: hsl(var(--htb-bg-primary-val));
+    --primary: hsl(var(--theme-accent-lime-val));
+    --primary-foreground: hsl(var(--theme-bg-primary-val));
 
-    --secondary: hsl(var(--htb-bg-secondary-val));
-    --secondary-foreground: hsl(var(--htb-text-primary-val));
+    --secondary: hsl(var(--theme-accent-blue-val));
+    --secondary-foreground: hsl(var(--theme-text-primary-val));
 
-    --muted: hsl(var(--htb-border-primary-val));
-    --muted-foreground: hsl(var(--htb-text-secondary-val));
+    --muted: hsl(var(--theme-border-primary-val));
+    --muted-foreground: hsl(var(--theme-text-secondary-val));
 
-    --accent: hsl(var(--htb-accent-cyan-val));
-    --accent-foreground: hsl(var(--htb-bg-primary-val));
+    --accent: hsl(var(--theme-accent-blue-val));
+    --accent-foreground: hsl(var(--theme-text-primary-val));
 
-    --destructive: hsl(var(--htb-status-error-val));
-    --destructive-foreground: hsl(var(--htb-text-primary-val));
+    --destructive: hsl(var(--theme-status-error-val));
+    --destructive-foreground: hsl(var(--theme-text-primary-val));
 
-    --border: hsl(var(--htb-border-primary-val));
-    --input: hsl(var(--htb-border-primary-val));
-    --ring: hsl(var(--htb-accent-green-val));
+    --border: hsl(var(--theme-border-primary-val));
+    --input: hsl(var(--theme-border-primary-val));
+    --ring: hsl(var(--theme-accent-lime-val));
 
-    --card: hsl(var(--htb-bg-secondary-val));
-    --card-foreground: hsl(var(--htb-text-primary-val));
+    --card: hsl(var(--theme-bg-secondary-val));
+    --card-foreground: hsl(var(--theme-text-primary-val));
 
-    --popover: hsl(var(--htb-bg-secondary-val));
-    --popover-foreground: hsl(var(--htb-text-primary-val));
+    --popover: hsl(var(--theme-bg-secondary-val));
+    --popover-foreground: hsl(var(--theme-text-primary-val));
 
     /* Sidebar specific theme for .dark */
-    --sidebar-background: hsl(var(--htb-bg-secondary-val));
-    --sidebar-foreground: hsl(var(--htb-text-primary-val));
-    --sidebar-primary: hsl(var(--htb-accent-green-val));
-    --sidebar-primary-foreground: hsl(var(--htb-bg-primary-val));
-    --sidebar-accent: hsl(var(--htb-accent-cyan-val));
-    --sidebar-accent-foreground: hsl(var(--htb-bg-primary-val));
-    --sidebar-border: hsl(var(--htb-border-primary-val));
-    --sidebar-ring: hsl(var(--htb-accent-green-val));
+    --sidebar-background: hsl(var(--theme-bg-secondary-val));
+    --sidebar-foreground: hsl(var(--theme-text-primary-val));
+    --sidebar-primary: hsl(var(--theme-accent-lime-val));
+    --sidebar-primary-foreground: hsl(var(--theme-bg-primary-val));
+    --sidebar-accent: hsl(var(--theme-accent-blue-val));
+    --sidebar-accent-foreground: hsl(var(--theme-text-primary-val));
+    --sidebar-border: hsl(var(--theme-border-primary-val));
+    --sidebar-ring: hsl(var(--theme-accent-lime-val));
   }
 }
 
@@ -117,7 +118,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-gradient-to-b from-blueViolet2500 to-blueViolet2200 text-foreground min-h-screen;
   }
 
   a {
