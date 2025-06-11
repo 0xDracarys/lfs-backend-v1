@@ -73,7 +73,16 @@ export default {
 					'warning': '#F39C12',    // Warning indicators
 					'info': '#3498DB',       // Info indicators
 					'progress': '#9B59B6',   // Progress indicators
-				}
+				},
+        // New Terminal Color Palette
+        'terminal-bg': '#282c34',
+        'terminal-text': '#abb2bf',
+        'terminal-accent-primary': '#61afef', // Blue
+        'terminal-accent-secondary': '#c678dd', // Purple
+        'terminal-success': '#98c379',      // Green
+        'terminal-error': '#e06c75',        // Red
+        'terminal-warning': '#d19a66',     // Orange/Brown
+        'terminal-border': '#3b4048',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

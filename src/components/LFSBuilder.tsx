@@ -173,7 +173,7 @@ const LFSBuilder: React.FC<LFSBuilderProps> = ({ session }) => { // Destructure 
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
+    <div className="min-h-screen bg-background text-foreground pb-12">
       {/* Header now contains navigation */}
       <Header
         session={session} // Pass session to Header
@@ -184,10 +184,10 @@ const LFSBuilder: React.FC<LFSBuilderProps> = ({ session }) => { // Destructure 
       
       {/* Getting Started Guide */}
       <div className="container mx-auto px-4 py-2 mt-2">
-        <Card className="bg-blue-50 border-blue-200 mb-4">
+        <Card className="mb-4"> {/* Removed bg-blue-50 border-blue-200 */}
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
-              <Info className="h-5 w-5 mr-2 text-blue-600" />
+              <Info className="h-5 w-5 mr-2 text-accent-primary" /> {/* Changed text-blue-600 to text-accent-primary */}
               Getting Started with LFS Builder
             </CardTitle>
           </CardHeader>
@@ -207,12 +207,12 @@ const LFSBuilder: React.FC<LFSBuilderProps> = ({ session }) => { // Destructure 
       </div>
       
       {/* Main content */}
-      <div className="container mx-auto px-4 py-4 flex flex-col lg:flex-row gap-6">
-        {/* Left column - Build steps */}
-        <div className="w-full lg:w-2/5 space-y-4">
-          <div className="bg-white p-4 rounded-lg shadow">
+      <div className="container mx-auto px-4 py-4 flex flex-col gap-6"> {/* Removed lg:flex-row */}
+        {/* Former Left column - Build steps */}
+        <div className="w-full space-y-4"> {/* Removed lg:w-2/5 */}
+          <div className="bg-card p-4 rounded-lg"> {/* Changed bg-white and shadow to bg-card */}
             <h2 className="text-lg font-semibold mb-4 flex items-center">
-              <ChevronRight className="mr-1 h-5 w-5 text-blue-500" />
+              <ChevronRight className="mr-1 h-5 w-5 text-accent-primary" /> {/* Changed text-blue-500 to text-accent-primary */}
               Build Phases
             </h2>
             
@@ -230,35 +230,35 @@ const LFSBuilder: React.FC<LFSBuilderProps> = ({ session }) => { // Destructure 
             </div>
           </div>
           
-          <Card>
+          <Card> {/* Ensure this card uses default themed styles */}
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">Input Examples & Requirements</CardTitle>
             </CardHeader>
             <CardContent className="text-xs space-y-2">
               <div>
-                <span className="font-medium">Disk Path:</span> /dev/sdb (use a dedicated disk)
+                <span className="font-medium text-foreground/90">Disk Path:</span> /dev/sdb (use a dedicated disk)
               </div>
               <div>
-                <span className="font-medium">LFS Partition:</span> /dev/sdb1 (at least 20GB recommended)
+                <span className="font-medium text-foreground/90">LFS Partition:</span> /dev/sdb1 (at least 20GB recommended)
               </div>
               <div>
-                <span className="font-medium">Mount Point:</span> /mnt/lfs
+                <span className="font-medium text-foreground/90">Mount Point:</span> /mnt/lfs
               </div>
               <div>
-                <span className="font-medium">Sources Path:</span> /mnt/lfs/sources
+                <span className="font-medium text-foreground/90">Sources Path:</span> /mnt/lfs/sources
               </div>
               <div>
-                <span className="font-medium">Required Space:</span> At least 20GB disk space
+                <span className="font-medium text-foreground/90">Required Space:</span> At least 20GB disk space
               </div>
               <div>
-                <span className="font-medium">Packages URL:</span> Default mirrors will be used if empty
+                <span className="font-medium text-foreground/90">Packages URL:</span> Default mirrors will be used if empty
               </div>
             </CardContent>
           </Card>
         </div>
         
-        {/* Right column - Logs and progress */}
-        <div className="w-full lg:w-3/5">
+        {/* Former Right column - Logs and progress */}
+        <div className="w-full space-y-4"> {/* Removed lg:w-3/5 and added space-y-4 */}
           <OutputMonitor logs={logs} scriptOutput={scriptOutput} />
           <BuildSummary 
             currentPhase={currentPhase}

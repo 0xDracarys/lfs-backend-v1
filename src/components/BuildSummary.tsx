@@ -15,23 +15,23 @@ const BuildSummary: React.FC<BuildSummaryProps> = ({
   buildProgress
 }) => {
   return (
-    <div className="bg-white p-4 rounded-lg shadow mb-4">
-      <h2 className="text-lg font-semibold mb-4 flex items-center">
-        <ChevronRight className="mr-1 h-5 w-5 text-blue-500" />
+    <div className="bg-card text-card-foreground p-4 rounded-lg mb-4"> {/* Themed container */}
+      <h2 className="text-lg font-semibold mb-4 flex items-center text-foreground"> {/* Themed title */}
+        <ChevronRight className="mr-1 h-5 w-5 text-accent-primary" /> {/* Themed icon */}
         Build Summary
       </h2>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gray-50 p-3 rounded-md">
-          <div className="text-sm text-gray-500">Current Phase</div>
-          <div className="font-medium">{currentPhase}</div>
+        <div className="bg-terminal-border/30 p-3 rounded-md"> {/* Themed grid item bg */}
+          <div className="text-sm text-muted-foreground">Current Phase</div> {/* Themed label */}
+          <div className="font-medium text-foreground">{currentPhase}</div> {/* Themed value */}
         </div>
         
-        <div className="bg-gray-50 p-3 rounded-md">
-          <div className="text-sm text-gray-500">User Context</div>
+        <div className="bg-terminal-border/30 p-3 rounded-md"> {/* Themed grid item bg */}
+          <div className="text-sm text-muted-foreground">User Context</div> {/* Themed label */}
           <div 
             className={`font-medium ${
-              currentContext === UserContext.ROOT ? "text-lfs-root" :
+              currentContext === UserContext.ROOT ? "text-lfs-root" : // Keep specific context colors
               currentContext === UserContext.LFS_USER ? "text-lfs-lfs-user" :
               "text-lfs-chroot"
             }`}
@@ -40,9 +40,9 @@ const BuildSummary: React.FC<BuildSummaryProps> = ({
           </div>
         </div>
         
-        <div className="bg-gray-50 p-3 rounded-md">
-          <div className="text-sm text-gray-500">Progress</div>
-          <div className="font-medium">{buildProgress}%</div>
+        <div className="bg-terminal-border/30 p-3 rounded-md"> {/* Themed grid item bg */}
+          <div className="text-sm text-muted-foreground">Progress</div> {/* Themed label */}
+          <div className="font-medium text-foreground">{buildProgress}%</div> {/* Themed value */}
         </div>
       </div>
     </div>

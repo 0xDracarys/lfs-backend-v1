@@ -57,7 +57,7 @@ const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center space-x-2">
           <HardDrive className="h-6 w-6" />
           <h1 className="text-xl font-bold">LFS Builder</h1>
-          <span className="text-xs bg-blue-600 px-2 py-0.5 rounded mr-4">v11.2</span> {/* Added mr-4 for spacing */}
+          <span className="text-xs bg-terminal-accent-secondary text-terminal-bg px-2 py-0.5 rounded mr-4">v11.2</span> {/* Added mr-4 for spacing, themed badge */}
         </div>
 
         {/* Navigation Links - Placed in the middle */}

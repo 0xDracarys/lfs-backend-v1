@@ -4,89 +4,109 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Terminal Theme Variables using HSL values */
+    --terminal-bg-val: 220 13% 18%;
+    --terminal-text-val: 220 10% 70%;
+    --terminal-accent-primary-val: 207 70% 62%;
+    --terminal-accent-secondary-val: 286 44% 66%;
+    --terminal-success-val: 95 38% 62%;
+    --terminal-error-val: 355 65% 67%;
+    --terminal-warning-val: 30 42% 60%;
+    --terminal-border-val: 219 9% 26%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Overriding shadcn default background and foreground with terminal theme */
+    --background: hsl(var(--terminal-bg-val));
+    --foreground: hsl(var(--terminal-text-val));
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* Mapping terminal colors to existing shadcn variable names */
+    --primary: hsl(var(--terminal-accent-primary-val));
+    --primary-foreground: hsl(var(--terminal-bg-val)); /* Text on primary button */
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --secondary: hsl(var(--terminal-accent-secondary-val));
+    --secondary-foreground: hsl(var(--terminal-bg-val)); /* Text on secondary button */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: hsl(var(--terminal-border-val)); /* Muted backgrounds, e.g., badges */
+    --muted-foreground: hsl(var(--terminal-text-val)); /* Text on muted backgrounds */
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: hsl(var(--terminal-accent-primary-val)); /* Often used for hover states or active elements */
+    --accent-foreground: hsl(var(--terminal-bg-val));
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: hsl(var(--terminal-error-val));
+    --destructive-foreground: hsl(var(--terminal-bg-val)); /* Ensuring contrast */
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --border: hsl(var(--terminal-border-val));
+    --input: hsl(var(--terminal-border-val)); /* Input field border */
+    --ring: hsl(var(--terminal-accent-primary-val)); /* Focus ring color */
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --card: hsl(var(--terminal-bg-val)); /* Card background */
+    --card-foreground: hsl(var(--terminal-text-val)); /* Card text */
+
+    --popover: hsl(var(--terminal-bg-val));
+    --popover-foreground: hsl(var(--terminal-text-val));
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar specific theme - can also use terminal colors or be distinct */
+    /* For now, let's make sidebar consistent with the terminal theme */
+    --sidebar-background: hsl(var(--terminal-bg-val));
+    --sidebar-foreground: hsl(var(--terminal-text-val));
+    --sidebar-primary: hsl(var(--terminal-accent-primary-val));
+    --sidebar-primary-foreground: hsl(var(--terminal-bg-val));
+    --sidebar-accent: hsl(var(--terminal-border-val)); /* Slightly different accent for sidebar items */
+    --sidebar-accent-foreground: hsl(var(--terminal-accent-primary-val));
+    --sidebar-border: hsl(var(--terminal-border-val));
+    --sidebar-ring: hsl(var(--terminal-accent-primary-val));
   }
 
+  /* The .dark class might not be strictly necessary if :root is already dark themed. */
+  /* However, if there's a theme toggle, this ensures .dark explicitly uses the terminal theme. */
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --terminal-bg-val: 220 13% 18%;
+    --terminal-text-val: 220 10% 70%;
+    --terminal-accent-primary-val: 207 70% 62%;
+    --terminal-accent-secondary-val: 286 44% 66%;
+    --terminal-success-val: 95 38% 62%;
+    --terminal-error-val: 355 65% 67%;
+    --terminal-warning-val: 30 42% 60%;
+    --terminal-border-val: 219 9% 26%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --background: hsl(var(--terminal-bg-val));
+    --foreground: hsl(var(--terminal-text-val));
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --primary: hsl(var(--terminal-accent-primary-val));
+    --primary-foreground: hsl(var(--terminal-bg-val));
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: hsl(var(--terminal-accent-secondary-val));
+    --secondary-foreground: hsl(var(--terminal-bg-val));
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --muted: hsl(var(--terminal-border-val));
+    --muted-foreground: hsl(var(--terminal-text-val));
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --accent: hsl(var(--terminal-accent-primary-val));
+    --accent-foreground: hsl(var(--terminal-bg-val));
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --destructive: hsl(var(--terminal-error-val));
+    --destructive-foreground: hsl(var(--terminal-bg-val));
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --border: hsl(var(--terminal-border-val));
+    --input: hsl(var(--terminal-border-val));
+    --ring: hsl(var(--terminal-accent-primary-val));
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --card: hsl(var(--terminal-bg-val));
+    --card-foreground: hsl(var(--terminal-text-val));
+
+    --popover: hsl(var(--terminal-bg-val));
+    --popover-foreground: hsl(var(--terminal-text-val));
+
+    /* Sidebar specific theme for .dark */
+    --sidebar-background: hsl(var(--terminal-bg-val));
+    --sidebar-foreground: hsl(var(--terminal-text-val));
+    --sidebar-primary: hsl(var(--terminal-accent-primary-val));
+    --sidebar-primary-foreground: hsl(var(--terminal-bg-val));
+    --sidebar-accent: hsl(var(--terminal-border-val));
+    --sidebar-accent-foreground: hsl(var(--terminal-accent-primary-val));
+    --sidebar-border: hsl(var(--terminal-border-val));
+    --sidebar-ring: hsl(var(--terminal-accent-primary-val));
   }
 }
 
