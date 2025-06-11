@@ -28,33 +28,33 @@ const BuildPhaseComponent: React.FC<BuildPhaseProps> = ({
   const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
   
   return (
-    <Card className={`mb-4 ${isCurrentPhase ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}>
+    <Card className={`mb-4 ${isCurrentPhase ? 'ring-2 ring-offset-2 ring-terminal-accent-primary' : ''}`}>
       <CardHeader 
-        className={`py-3 cursor-pointer ${isCompleted ? 'bg-green-50' : isCurrentPhase ? 'bg-blue-50' : 'bg-gray-50'}`}
+        className="py-3 cursor-pointer" // Removed specific bg-* colors
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <h3 className="font-semibold">{phase}</h3>
+            <h3 className="font-semibold text-foreground">{phase}</h3> {/* Ensure text color */}
             {isCurrentPhase && (
-              <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">Current</span>
+              <span className="bg-terminal-accent-primary text-terminal-bg text-xs px-2 py-0.5 rounded-full">Current</span>
             )}
             {isCompleted && (
-              <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">Completed</span>
+              <span className="bg-terminal-success text-terminal-bg text-xs px-2 py-0.5 rounded-full">Completed</span>
             )}
           </div>
           
           <div className="flex items-center space-x-4">
-            <div className="text-sm">
+            <div className="text-sm text-muted-foreground"> {/* Themed progress text */}
               {completedSteps}/{totalSteps} steps ({progress}%)
             </div>
-            {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            {expanded ? <ChevronUp size={18} className="text-foreground" /> : <ChevronDown size={18} className="text-foreground" />} {/* Themed icons */}
           </div>
         </div>
       </CardHeader>
 
       {expanded && (
-        <CardContent className="py-3">
+        <CardContent className="py-3 bg-background"> {/* Ensure content bg matches main bg if different from card */}
           <div className="space-y-2">
             {steps.map(step => (
               <BuildStep

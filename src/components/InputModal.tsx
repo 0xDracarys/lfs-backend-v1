@@ -62,7 +62,7 @@ const InputModal: React.FC<InputModalProps> = ({
             ) : (
               <div className="space-y-2">
                 {request.description && (
-                  <p className="text-sm text-gray-500">{request.description}</p>
+                  <p className="text-sm text-muted-foreground">{request.description}</p>
                 )}
                 <Input
                   type={request.type === "password" ? "password" : "text"}
@@ -73,7 +73,7 @@ const InputModal: React.FC<InputModalProps> = ({
                   autoFocus
                 />
                 {request.placeholder && (
-                  <p className="text-xs text-gray-400">Example: {request.placeholder}</p>
+                  <p className="text-xs text-muted-foreground/80">Example: {request.placeholder}</p>
                 )}
               </div>
             )}

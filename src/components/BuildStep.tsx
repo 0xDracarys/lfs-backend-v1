@@ -17,16 +17,16 @@ const BuildStep: React.FC<BuildStepProps> = ({ step, onStart, disabled = false }
   const getStatusIcon = () => {
     switch(step.status) {
       case BuildStatus.COMPLETED:
-        return <CheckCircle className="text-lfs-success" />;
+        return <CheckCircle className="text-terminal-success" />;
       case BuildStatus.IN_PROGRESS:
-        return <PlayCircle className="text-lfs-info animate-pulse-soft" />;
+        return <PlayCircle className="text-terminal-accent-primary animate-pulse-soft" />;
       case BuildStatus.FAILED:
-        return <AlertCircle className="text-lfs-error" />;
+        return <AlertCircle className="text-terminal-error" />;
       case BuildStatus.SKIPPED:
-        return <Clock className="text-lfs-warning" />;
+        return <Clock className="text-terminal-warning" />;
       case BuildStatus.PENDING:
       default:
-        return <Circle className="text-gray-400" />;
+        return <Circle className="text-muted-foreground" />;
     }
   };
 
@@ -48,16 +48,16 @@ const BuildStep: React.FC<BuildStepProps> = ({ step, onStart, disabled = false }
   const getStatusClass = () => {
     switch(step.status) {
       case BuildStatus.COMPLETED:
-        return "text-lfs-success";
+        return "text-terminal-success";
       case BuildStatus.IN_PROGRESS:
-        return "text-lfs-info";
+        return "text-terminal-accent-primary";
       case BuildStatus.FAILED:
-        return "text-lfs-error";
+        return "text-terminal-error";
       case BuildStatus.SKIPPED:
-        return "text-lfs-warning";
+        return "text-terminal-warning";
       case BuildStatus.PENDING:
       default:
-        return "text-gray-500";
+        return "text-muted-foreground";
     }
   };
 
@@ -66,25 +66,25 @@ const BuildStep: React.FC<BuildStepProps> = ({ step, onStart, disabled = false }
       <CardHeader className="py-3 flex flex-row items-center justify-between space-y-0">
         <div className="flex items-center">
           <span className="mr-2">{getStatusIcon()}</span>
-          <h4 className="text-base font-medium">{step.name}</h4>
+          <h4 className="text-base font-medium text-foreground">{step.name}</h4> {/* Ensure text color */}
         </div>
         {/* TooltipProvider and Tooltip removed, status text remains */}
         <div className={`text-xs ${getStatusClass()} font-medium uppercase`}>
           {step.status}
         </div>
         {/* Consider adding context display back if important, e.g., next to status or below description */}
-        {/* <p className="text-xs text-gray-500">{step.context} context</p> */}
+        {/* <p className="text-xs text-muted-foreground">{step.context} context</p> */} {/* Themed if uncommented */}
       </CardHeader>
 
-      <CardContent className="py-2 text-sm text-gray-600">
+      <CardContent className="py-2 text-sm text-muted-foreground"> {/* Themed description text */}
         <p>{step.description}</p>
         {step.requiresInput && (
-          <span className="inline-flex items-center mt-1 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">
+          <span className="inline-flex items-center mt-1 text-xs bg-terminal-warning text-terminal-bg px-2 py-0.5 rounded">
             Requires Input
           </span>
         )}
         {step.estimatedTime && (
-          <span className="inline-flex items-center ml-2 mt-1 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+          <span className="inline-flex items-center ml-2 mt-1 text-xs bg-terminal-accent-secondary text-terminal-bg px-2 py-0.5 rounded">
             ~{Math.round(step.estimatedTime / 60)} min
           </span>
         )}

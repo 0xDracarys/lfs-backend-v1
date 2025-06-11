@@ -23,20 +23,20 @@ const StatusBar: React.FC<StatusBarProps> = ({
       case UserContext.CHROOT:
         return "bg-lfs-chroot";
       default:
-        return "bg-gray-500";
+        return "bg-muted-foreground"; // Themed default
     }
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-10 bg-gray-800 text-white flex items-center px-4">
-      <div className={`flex items-center ${getContextColor()} px-3 py-1 rounded-md mr-4`}>
+    <div className="fixed bottom-0 left-0 right-0 h-10 bg-terminal-border text-terminal-text flex items-center px-4"> {/* Themed status bar */}
+      <div className={`flex items-center ${getContextColor()} px-3 py-1 rounded-md mr-4 text-terminal-bg`}> {/* Text color for contrast on context bg */}
         <span className="font-bold">Context: {currentContext}</span>
       </div>
       <div className="flex-1 mr-4">
         <span className="mr-4">Current Phase: {currentPhase}</span>
-        <div className="w-full bg-gray-600 h-2 rounded-full">
+        <div className="w-full bg-terminal-bg h-2 rounded-full"> {/* Themed progress bar background */}
           <div 
-            className="bg-lfs-progress h-2 rounded-full"
+            className="bg-terminal-accent-secondary h-2 rounded-full" // Themed progress bar fill
             style={{ width: `${buildProgress}%` }} 
           />
         </div>
