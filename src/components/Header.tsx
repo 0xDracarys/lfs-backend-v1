@@ -1,10 +1,24 @@
 
-import React from "react";
+import React, { useState } from "react"; // Added useState
 import {
   HardDrive, Play, Pause, RefreshCw, Settings, LogOut, User, LogIn, UserPlus,
   Home, FileText, Disc, History as HistoryIcon, ChevronDown // Icons for nav
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  // DialogClose, // Not used in this specific implementation, but good to have if needed
+} from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"; // Added Tooltip imports
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +46,7 @@ const Header: React.FC<HeaderProps> = ({
   const navigate = useNavigate();
   const location = useLocation(); // For active link highlighting
   const currentPath = location.pathname;
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false); // Added state for modal
 
   const navItems = [
     { path: "/", title: "Builder", icon: Home }, // Shortened title for header
@@ -67,13 +82,13 @@ const Header: React.FC<HeaderProps> = ({
               key={item.path}
               to={item.path}
               className={cn(
-                "px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1",
+                "px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1 underline underline-offset-4", // Added underline
                 currentPath === item.path
-                  ? "bg-htb-bg-secondary text-htb-text-primary" // Active link style
-                  : "text-htb-text-secondary hover:bg-htb-bg-secondary hover:text-htb-text-primary" // Inactive link style
+                  ? "bg-card text-primary font-semibold" // Active link style
+                  : "text-primary hover:text-primary/80 hover:bg-card" // Inactive link style
               )}
             >
-              <item.icon className="h-4 w-4" /> {/* Icons should inherit color or be explicitly set if needed */}
+              <item.icon className="h-4 w-4" />
               <span>{item.title}</span>
             </Link>
           ))}
@@ -83,25 +98,22 @@ const Header: React.FC<HeaderProps> = ({
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1 text-htb-text-secondary hover:bg-htb-bg-secondary hover:text-htb-text-primary focus-visible:ring-0"
+                  className="px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1 text-primary hover:text-primary/80 hover:bg-card focus-visible:ring-0" // Updated trigger style
                 >
                   <span>More</span>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              {/* DropdownMenuContent styling is handled by ui/dropdown-menu.tsx which uses CSS variables like --popover */}
-              <DropdownMenuContent>
+              <DropdownMenuContent className="w-56" align="end">
                 {navItems.slice(3).map((item) => (
-                  // DropdownMenuItem styling is handled by ui/dropdown-menu.tsx (focus:bg-accent)
-                  // We need to ensure that link behavior is preserved and text colors are right.
-                  <DropdownMenuItem key={item.path} asChild className="focus:bg-htb-accent-green/20 cursor-pointer">
+                  <DropdownMenuItem key={item.path} asChild className="focus:bg-accent/20 cursor-pointer"> {/* Use accent for focus bg */}
                     <Link
                       to={item.path}
                       className={cn(
-                        "w-full flex items-center space-x-1", // Ensure text color is applied by parent or explicitly
+                        "w-full flex items-center space-x-1 underline underline-offset-4", // Added underline
                          currentPath === item.path
-                          ? "text-htb-accent-green" // Active item in dropdown
-                          : "text-htb-text-secondary hover:text-htb-text-primary"
+                          ? "text-primary font-semibold" // Active dropdown link
+                          : "text-primary hover:text-primary/80" // Inactive dropdown link
                       )}
                     >
                       <item.icon className="h-4 w-4 mr-2" />
@@ -136,9 +148,16 @@ const Header: React.FC<HeaderProps> = ({
             Reset
           </Button>
           
-          <Button variant="outline" size="icon" className=""> {/* Text color will come from themed outline button */}
-            <Settings className="h-4 w-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" className="" onClick={() => setIsSettingsModalOpen(true)}>
+                <Settings className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Settings</p>
+            </TooltipContent>
+          </Tooltip>
 
           {/* Auth Section */}
           {session?.user ? (
@@ -176,6 +195,26 @@ const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
     </header>
+    <Dialog open={isSettingsModalOpen} onOpenChange={setIsSettingsModalOpen}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Settings</DialogTitle>
+          <DialogDescription>
+            Settings panel. Functionality to be implemented here.
+          </DialogDescription>
+        </DialogHeader>
+        {/* Placeholder content can go here */}
+        <div className="py-4">
+          <p className="text-sm text-muted-foreground">
+            Further settings options will be available in a future update.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setIsSettingsModalOpen(false)}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </>
   );
 };
 

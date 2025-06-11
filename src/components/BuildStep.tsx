@@ -61,11 +61,20 @@ const BuildStep: React.FC<BuildStepProps> = ({ step, onStart, disabled = false }
     }
   };
 
+  const isPending = step.status === BuildStatus.PENDING;
+
   return (
-    <Card className={`mb-2 ${getContextBorder()}`}>
+    <Card className={`mb-2 ${getContextBorder()} ${isPending ? 'hover:border-primary' : ''}`}>
       <CardHeader className="py-3 flex flex-row items-center justify-between space-y-0">
         <div className="flex items-center">
-          <span className="mr-2">{getStatusIcon()}</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="mr-2">{getStatusIcon()}</span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{step.status}</p>
+            </TooltipContent>
+          </Tooltip>
           <h4 className="text-base font-medium text-foreground">{step.name}</h4> {/* Ensure text color */}
         </div>
         {/* TooltipProvider and Tooltip removed, status text remains */}
