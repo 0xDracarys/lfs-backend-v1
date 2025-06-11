@@ -67,6 +67,7 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   return (
+    <>
     <header className="bg-background text-foreground py-4"> {/* Use CSS variables */}
       <div className="container mx-auto px-4 flex justify-between items-center">
         <div className="flex items-center space-x-2">
@@ -214,7 +215,7 @@ const Header: React.FC<HeaderProps> = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  </>
+    </>
   );
 };
 
