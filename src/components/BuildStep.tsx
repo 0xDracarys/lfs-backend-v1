@@ -17,16 +17,16 @@ const BuildStep: React.FC<BuildStepProps> = ({ step, onStart, disabled = false }
   const getStatusIcon = () => {
     switch(step.status) {
       case BuildStatus.COMPLETED:
-        return <CheckCircle className="text-terminal-success" />;
+        return <CheckCircle className="text-htb-status-success" />;
       case BuildStatus.IN_PROGRESS:
-        return <PlayCircle className="text-terminal-accent-primary animate-pulse-soft" />;
+        return <PlayCircle className="text-htb-accent-green animate-pulse-soft" />;
       case BuildStatus.FAILED:
-        return <AlertCircle className="text-terminal-error" />;
-      case BuildStatus.SKIPPED:
-        return <Clock className="text-terminal-warning" />;
+        return <AlertCircle className="text-htb-status-error" />;
+      case BuildStatus.SKIPPED: // Assuming SKIPPED can use warning color, or map to specific icon if needed
+        return <Clock className="text-htb-status-warning" />;
       case BuildStatus.PENDING:
       default:
-        return <Circle className="text-muted-foreground" />;
+        return <Circle className="text-htb-text-secondary" />; // Explicitly use HTB secondary text
     }
   };
 
@@ -48,16 +48,16 @@ const BuildStep: React.FC<BuildStepProps> = ({ step, onStart, disabled = false }
   const getStatusClass = () => {
     switch(step.status) {
       case BuildStatus.COMPLETED:
-        return "text-terminal-success";
+        return "text-htb-status-success";
       case BuildStatus.IN_PROGRESS:
-        return "text-terminal-accent-primary";
+        return "text-htb-accent-green";
       case BuildStatus.FAILED:
-        return "text-terminal-error";
+        return "text-htb-status-error";
       case BuildStatus.SKIPPED:
-        return "text-terminal-warning";
+        return "text-htb-status-warning";
       case BuildStatus.PENDING:
       default:
-        return "text-muted-foreground";
+        return "text-htb-text-secondary"; // Explicitly use HTB secondary text
     }
   };
 
@@ -76,15 +76,15 @@ const BuildStep: React.FC<BuildStepProps> = ({ step, onStart, disabled = false }
         {/* <p className="text-xs text-muted-foreground">{step.context} context</p> */} {/* Themed if uncommented */}
       </CardHeader>
 
-      <CardContent className="py-2 text-sm text-muted-foreground"> {/* Themed description text */}
+      <CardContent className="py-2 text-sm text-muted-foreground">
         <p>{step.description}</p>
         {step.requiresInput && (
-          <span className="inline-flex items-center mt-1 text-xs bg-terminal-warning text-terminal-bg px-2 py-0.5 rounded">
+          <span className="inline-flex items-center mt-1 text-xs bg-htb-status-warning text-htb-bg-primary px-2 py-0.5 rounded">
             Requires Input
           </span>
         )}
         {step.estimatedTime && (
-          <span className="inline-flex items-center ml-2 mt-1 text-xs bg-terminal-accent-secondary text-terminal-bg px-2 py-0.5 rounded">
+          <span className="inline-flex items-center ml-2 mt-1 text-xs bg-htb-accent-cyan text-htb-bg-primary px-2 py-0.5 rounded">
             ~{Math.round(step.estimatedTime / 60)} min
           </span>
         )}

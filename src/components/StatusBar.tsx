@@ -28,15 +28,15 @@ const StatusBar: React.FC<StatusBarProps> = ({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-10 bg-terminal-border text-terminal-text flex items-center px-4"> {/* Themed status bar */}
-      <div className={`flex items-center ${getContextColor()} px-3 py-1 rounded-md mr-4 text-terminal-bg`}> {/* Text color for contrast on context bg */}
+    <div className="fixed bottom-0 left-0 right-0 h-10 bg-htb-bg-primary text-htb-text-secondary flex items-center px-4"> {/* HTB themed status bar */}
+      <div className={`flex items-center ${getContextColor()} px-3 py-1 rounded-md mr-4 text-htb-text-primary`}> {/* HTB text for contrast */}
         <span className="font-bold">Context: {currentContext}</span>
       </div>
       <div className="flex-1 mr-4">
         <span className="mr-4">Current Phase: {currentPhase}</span>
-        <div className="w-full bg-terminal-bg h-2 rounded-full"> {/* Themed progress bar background */}
+        <div className="w-full bg-htb-bg-secondary h-2 rounded-full"> {/* HTB themed progress bar background */}
           <div 
-            className="bg-terminal-accent-secondary h-2 rounded-full" // Themed progress bar fill
+            className="bg-htb-accent-green h-2 rounded-full" // HTB themed progress bar fill
             style={{ width: `${buildProgress}%` }} 
           />
         </div>

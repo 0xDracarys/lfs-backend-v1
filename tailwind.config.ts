@@ -83,6 +83,17 @@ export default {
         'terminal-error': '#e06c75',        // Red
         'terminal-warning': '#d19a66',     // Orange/Brown
         'terminal-border': '#3b4048',
+        // HTB Color Palette
+        'htb-bg-primary': '#111827',
+        'htb-bg-secondary': '#1F2937',
+        'htb-text-primary': '#F3F4F6',
+        'htb-text-secondary': '#9CA3AF',
+        'htb-accent-green': '#10B981',
+        'htb-accent-cyan': '#06B6D4',
+        'htb-status-error': '#EF4444',
+        'htb-status-warning': '#F59E0B',
+        'htb-status-success': '#10B981',
+        'htb-border-primary': '#374151',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
