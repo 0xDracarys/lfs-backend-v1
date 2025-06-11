@@ -2,9 +2,15 @@
 import React from "react";
 import {
   HardDrive, Play, Pause, RefreshCw, Settings, LogOut, User, LogIn, UserPlus,
-  Home, FileText, Disc, History as HistoryIcon // Icons for nav
+  Home, FileText, Disc, History as HistoryIcon, ChevronDown // Icons for nav
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from '@/integrations/supabase/client';
 import type { Session } from '@supabase/supabase-js';
 import { Link, useNavigate, useLocation } from "react-router-dom"; // Added useLocation
@@ -29,10 +35,10 @@ const Header: React.FC<HeaderProps> = ({
 
   const navItems = [
     { path: "/", title: "Builder", icon: Home }, // Shortened title for header
-    { path: "/configs", title: "Configs", icon: Settings },
+    { path: "/configs", title: "Configurations", icon: Settings },
     { path: "/history", title: "History", icon: HistoryIcon },
     { path: "/testing", title: "Testing", icon: FileText },
-    { path: "/iso", title: "ISO Mgmt", icon: Disc }
+    { path: "/iso", title: "ISO Management", icon: Disc }
   ];
 
   const handleLogout = async () => {
@@ -56,21 +62,53 @@ const Header: React.FC<HeaderProps> = ({
 
         {/* Navigation Links - Placed in the middle */}
         <nav className="hidden md:flex items-center space-x-1">
-          {navItems.map((item) => (
+          {navItems.slice(0, 3).map((item) => ( // Display first 3 items directly
             <Link
               key={item.path}
               to={item.path}
               className={cn(
                 "px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1",
                 currentPath === item.path
-                  ? "bg-gray-700 text-white" // Active link style for dark header
-                  : "text-gray-300 hover:bg-gray-700 hover:text-white" // Default link style for dark header
+                  ? "bg-gray-700 text-white"
+                  : "text-gray-300 hover:bg-gray-700 hover:text-white"
               )}
             >
               <item.icon className="h-4 w-4" />
               <span>{item.title}</span>
             </Link>
           ))}
+
+          {navItems.length > 3 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost" // Use ghost variant for a less intrusive look
+                  className="px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1 text-gray-300 hover:bg-gray-700 hover:text-white focus-visible:ring-0"
+                >
+                  <span>More</span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-gray-800 text-white border-gray-700">
+                {navItems.slice(3).map((item) => (
+                  <DropdownMenuItem key={item.path} asChild className="hover:bg-gray-700 focus:bg-gray-700 cursor-pointer">
+                    <Link
+                      to={item.path}
+                      className={cn(
+                        "w-full px-3 py-2 text-sm font-medium flex items-center space-x-1",
+                        currentPath === item.path
+                          ? "bg-gray-700 text-white" // Active style for dropdown item
+                          : "text-gray-300"
+                      )}
+                    >
+                      <item.icon className="h-4 w-4 mr-2" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </nav>
         
         <div className="flex items-center space-x-4 ml-auto"> {/* Added ml-auto to push controls to the right */}
