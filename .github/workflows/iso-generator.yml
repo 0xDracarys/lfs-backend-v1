@@ -41,6 +41,11 @@ jobs:
           ls -R ./dist_lib || echo "dist_lib directory not found or ls failed"
           echo "--- End contents of dist_lib ---"
 
+      - name: Install ISO Generation Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xorriso
+
       - name: Generate ISO
         run: |
           mkdir -p ./generated_iso # Ensure output directory exists
