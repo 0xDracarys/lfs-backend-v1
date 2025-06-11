@@ -1,7 +1,7 @@
 
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-// Removed: import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom"; // Added useNavigate
 import React, { useState, useEffect } from 'react'; // Added useState, useEffect
@@ -54,7 +54,7 @@ const App = () => {
   // This is a basic example; you might want more sophisticated routing logic
   return (
     <QueryClientProvider client={queryClient}>
-      {/* <TooltipProvider> */} {/* TooltipProvider removed */}
+      <TooltipProvider> {/* TooltipProvider reinstated */}
       <Toaster />
       <Sonner />
       {/* BrowserRouter is moved to main.tsx or index.tsx in Vite projects usually */}
@@ -81,7 +81,7 @@ const App = () => {
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-      {/* </TooltipProvider> */} {/* TooltipProvider removed */}
+      </TooltipProvider> {/* TooltipProvider reinstated */}
     </QueryClientProvider>
   );
 };
